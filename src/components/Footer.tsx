@@ -1,7 +1,7 @@
-import Box from '@mui/material/Box'
-import Container from '@mui/material/Container'
-import Typography from '@mui/material/Typography'
-import IconButton from '@mui/material/IconButton'
+import Box from '@mui/joy/Box'
+import Container from '@mui/joy/Container'
+import Typography from '@mui/joy/Typography'
+import IconButton from '@mui/joy/IconButton'
 import LinkedInIcon from '@mui/icons-material/LinkedIn'
 import InstagramIcon from '@mui/icons-material/Instagram'
 
@@ -32,7 +32,7 @@ export function Footer() {
         >
           {/* left side - contact */}
           <Typography
-            variant="body1"
+            level="body-md"
             sx={{
               color: 'white',
               fontWeight: 500,

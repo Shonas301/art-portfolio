@@ -1,9 +1,8 @@
 import { useRef } from 'react'
-import Box from '@mui/material/Box'
-import Card from '@mui/material/Card'
-import CardContent from '@mui/material/CardContent'
-import CardMedia from '@mui/material/CardMedia'
-import Typography from '@mui/material/Typography'
+import Box from '@mui/joy/Box'
+import Card from '@mui/joy/Card'
+import CardContent from '@mui/joy/CardContent'
+import Typography from '@mui/joy/Typography'
 import type { GalleryItem } from '@/types/gallery'
 
 interface GalleryGridProps {
@@ -70,19 +69,18 @@ export function GalleryGrid({ items, onItemClick }: GalleryGridProps) {
                 <source src={item.src} type="video/mp4" />
               </video>
             ) : (
-              <CardMedia
-                component="img"
-                image={item.src}
+              <img
+                src={item.src}
                 alt={item.title}
-                sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
               />
             )}
           </Box>
           <CardContent>
-            <Typography variant="h6" gutterBottom>
+            <Typography level="title-md" sx={{ mb: 0.5 }}>
               {item.title}
             </Typography>
-            <Typography variant="body2" color="text.secondary">
+            <Typography level="body-sm">
               {item.description}
             </Typography>
           </CardContent>

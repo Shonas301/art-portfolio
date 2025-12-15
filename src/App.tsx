@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
-import { ThemeProvider } from '@mui/material/styles'
-import CssBaseline from '@mui/material/CssBaseline'
+import { CssVarsProvider } from '@mui/joy/styles'
+import CssBaseline from '@mui/joy/CssBaseline'
 import { theme } from './theme'
 import { Layout } from './components/Layout'
 import { Home } from './pages/Home'
@@ -14,7 +14,7 @@ import { Contact } from './pages/Contact'
 
 function App() {
   return (
-    <ThemeProvider theme={theme}>
+    <CssVarsProvider theme={theme}>
       <CssBaseline />
       <BrowserRouter>
         <Layout>
@@ -30,7 +30,7 @@ function App() {
           </Routes>
         </Layout>
       </BrowserRouter>
-    </ThemeProvider>
+    </CssVarsProvider>
   )
 }
 

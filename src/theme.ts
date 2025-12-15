@@ -1,92 +1,124 @@
-import { createTheme } from '@mui/material/styles'
+import { extendTheme } from '@mui/joy/styles'
 
 // bright, whimsical color palette for artist portfolio
-export const theme = createTheme({
-  palette: {
-    mode: 'light',
-    primary: {
-      main: '#9333ea', // purple-600
-      light: '#a855f7', // purple-500
-      dark: '#7e22ce', // purple-700
-      contrastText: '#ffffff',
-    },
-    secondary: {
-      main: '#ec4899', // pink-500
-      light: '#f472b6', // pink-400
-      dark: '#db2777', // pink-600
-      contrastText: '#ffffff',
-    },
-    warning: {
-      main: '#f59e0b', // amber-500
-      light: '#fbbf24', // amber-400
-      dark: '#d97706', // amber-600
-    },
-    info: {
-      main: '#06b6d4', // cyan-500
-      light: '#22d3ee', // cyan-400
-      dark: '#0891b2', // cyan-600
-    },
-    background: {
-      default: '#fefefe',
-      paper: '#ffffff',
+export const theme = extendTheme({
+  colorSchemes: {
+    light: {
+      palette: {
+        primary: {
+          50: '#faf5ff',
+          100: '#f3e8ff',
+          200: '#e9d5ff',
+          300: '#d8b4fe',
+          400: '#c084fc',
+          500: '#a855f7', // purple-500
+          600: '#9333ea', // purple-600 (main)
+          700: '#7e22ce',
+          800: '#6b21a8',
+          900: '#581c87',
+        },
+        neutral: {
+          50: '#fafafa',
+          100: '#f5f5f5',
+          200: '#e5e5e5',
+          300: '#d4d4d4',
+          400: '#a3a3a3',
+          500: '#737373',
+          600: '#525252',
+          700: '#404040',
+          800: '#262626',
+          900: '#171717',
+        },
+        danger: {
+          50: '#fdf2f8',
+          100: '#fce7f3',
+          200: '#fbcfe8',
+          300: '#f9a8d4',
+          400: '#f472b6',
+          500: '#ec4899', // pink-500 (main)
+          600: '#db2777',
+          700: '#be185d',
+          800: '#9d174d',
+          900: '#831843',
+        },
+        warning: {
+          50: '#fffbeb',
+          100: '#fef3c7',
+          200: '#fde68a',
+          300: '#fcd34d',
+          400: '#fbbf24',
+          500: '#f59e0b', // amber-500 (main)
+          600: '#d97706',
+          700: '#b45309',
+          800: '#92400e',
+          900: '#78350f',
+        },
+        success: {
+          50: '#ecfdf5',
+          100: '#d1fae5',
+          200: '#a7f3d0',
+          300: '#6ee7b7',
+          400: '#34d399',
+          500: '#10b981',
+          600: '#059669',
+          700: '#047857',
+          800: '#065f46',
+          900: '#064e3b',
+        },
+        background: {
+          body: '#fefefe',
+          surface: '#ffffff',
+        },
+      },
     },
   },
-  typography: {
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-    h1: {
-      fontWeight: 700,
-      fontSize: '3rem',
-    },
-    h2: {
-      fontWeight: 700,
-      fontSize: '2.25rem',
-    },
-    h3: {
-      fontWeight: 600,
-      fontSize: '1.875rem',
-    },
-    button: {
-      fontWeight: 600,
-      textTransform: 'none',
-    },
+  fontFamily: {
+    body: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+    display: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
   },
-  shape: {
-    borderRadius: 16,
+  fontSize: {
+    xs: '0.75rem',
+    sm: '0.875rem',
+    md: '1rem',
+    lg: '1.125rem',
+    xl: '1.25rem',
+    xl2: '1.5rem',
+    xl3: '1.875rem',
+    xl4: '2.25rem',
+  },
+  fontWeight: {
+    sm: 400,
+    md: 500,
+    lg: 600,
+    xl: 700,
+  },
+  radius: {
+    xs: '4px',
+    sm: '8px',
+    md: '12px',
+    lg: '16px',
+    xl: '24px',
   },
   components: {
-    MuiButton: {
+    JoyButton: {
       styleOverrides: {
         root: {
-          borderRadius: 28,
+          borderRadius: '28px',
           padding: '12px 32px',
           fontSize: '1.125rem',
-        },
-        contained: {
-          boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
-          '&:hover': {
-            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
-            transform: 'scale(1.02)',
-          },
+          fontWeight: 600,
+          transition: 'all 0.2s ease',
         },
       },
     },
-    MuiCard: {
+    JoyCard: {
       styleOverrides: {
         root: {
-          borderRadius: 16,
-          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+          borderRadius: '16px',
           transition: 'all 0.3s ease',
           '&:hover': {
-            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
             transform: 'translateY(-4px)',
           },
-        },
-      },
-    },
-    MuiAppBar: {
-      styleOverrides: {
-        root: {
-          boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
         },
       },
     },

@@ -1,44 +1,42 @@
-import Box from '@mui/material/Box'
-import Container from '@mui/material/Container'
-import Typography from '@mui/material/Typography'
-import Stack from '@mui/material/Stack'
-import Fade from '@mui/material/Fade'
+import Box from '@mui/joy/Box'
+import Container from '@mui/joy/Container'
+import Typography from '@mui/joy/Typography'
+import Stack from '@mui/joy/Stack'
 
 const videoContent = [
   {
     id: 1,
     src: '/output/720p_animation.mp4',
-    description: 'The first episode introduces Pandy and their whimsical world. Through careful animation and storytelling, we explore themes of curiosity and wonder. The character design emphasizes soft shapes and vibrant colors to create an inviting atmosphere.',
+    description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
   },
   {
     id: 2,
     src: '/output/720p_animation.mp4',
-    description: 'Episode two delves deeper into Pandy\'s adventures. The animation focuses on fluid movement and expressive character acting. Special attention was paid to timing and spacing to enhance the comedic moments.',
+    description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
   },
   {
     id: 3,
     src: '/output/720p_animation.mp4',
-    description: 'The third installment showcases advanced lighting techniques and environmental storytelling. Each frame is carefully composed to guide the viewer\'s eye and maintain visual interest throughout the sequence.',
+    description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
   },
 ]
 
 export function PandySeries() {
   return (
-    <Fade in timeout={600}>
-      <Box sx={{ width: '100%' }}>
-        <Container maxWidth="md" sx={{ px: 4, py: 6 }}>
-          <Stack spacing={3}>
-            <Typography variant="h2" sx={{ fontWeight: 700 }}>
-              Pandy Series
-            </Typography>
-            <Typography variant="body1" sx={{ fontSize: '1.125rem', color: 'text.secondary', lineHeight: 1.8 }}>
-              The Pandy Series was inspired by a desire to create joyful, character-driven animation that brings
-              smiles to viewers of all ages. Drawing from my background in both technical animation and storytelling,
-              each episode combines hand-crafted animation with thoughtful narratives. The series explores themes of
-              friendship, discovery, and the simple pleasures of everyday adventures.
-            </Typography>
-          </Stack>
-        </Container>
+    <Box sx={{ width: '100%' }}>
+      <Container maxWidth="md" sx={{ px: 4, py: 6 }}>
+        <Stack spacing={3}>
+          <Typography level="h2" sx={{ fontWeight: 700 }}>
+            Pandy Series
+          </Typography>
+          <Typography level="body-lg" sx={{ lineHeight: 1.8 }}>
+            The Pandy Series was inspired by a desire to create joyful, character-driven animation that brings
+            smiles to viewers of all ages. Drawing from my background in both technical animation and storytelling,
+            each episode combines hand-crafted animation with thoughtful narratives. The series explores themes of
+            friendship, discovery, and the simple pleasures of everyday adventures.
+          </Typography>
+        </Stack>
+      </Container>
 
         <Container maxWidth="lg" sx={{ px: 4, py: 4 }}>
           <Stack spacing={6}>
@@ -73,7 +71,7 @@ export function PandySeries() {
                   </Box>
                 </Box>
                 <Box sx={{ flex: 1 }}>
-                  <Typography variant="body1" sx={{ color: 'text.secondary', lineHeight: 1.8 }}>
+                  <Typography level="body-md" sx={{ lineHeight: 1.8 }}>
                     {item.description}
                   </Typography>
                 </Box>
@@ -81,7 +79,6 @@ export function PandySeries() {
             ))}
           </Stack>
         </Container>
-      </Box>
-    </Fade>
+    </Box>
   )
 }

@@ -1,36 +1,35 @@
 import { useRef } from 'react'
-import Box from '@mui/material/Box'
-import Container from '@mui/material/Container'
-import Typography from '@mui/material/Typography'
-import Stack from '@mui/material/Stack'
-import Fade from '@mui/material/Fade'
+import Box from '@mui/joy/Box'
+import Container from '@mui/joy/Container'
+import Typography from '@mui/joy/Typography'
+import Stack from '@mui/joy/Stack'
 
 const codeProjects = [
   {
     id: 1,
     title: 'Physics Simulation',
-    description: 'A custom physics engine built in Python for real-time particle simulations. Implements collision detection, gravity, and environmental forces. Used in several animation projects to create realistic movement.',
+    description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
     video: '/output/720p_animation.mp4',
     videoPosition: 'left' as const,
   },
   {
     id: 2,
     title: 'Animation Pipeline Tool',
-    description: 'Maya plugin developed to streamline the animation workflow. Automates repetitive tasks, manages scene organization, and provides batch processing capabilities. Written in Python using Maya\'s API.',
+    description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
     video: '/output/720p_animation.mp4',
     videoPosition: 'right' as const,
   },
   {
     id: 3,
     title: 'Procedural Generation System',
-    description: 'Houdini-based tool for generating procedural environments. Uses noise functions and algorithmic approaches to create varied, natural-looking landscapes. Highly customizable with exposed parameters for art direction.',
+    description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
     video: '/output/720p_animation.mp4',
     videoPosition: 'left' as const,
   },
   {
     id: 4,
     title: 'Game Logic Framework',
-    description: 'Unreal Engine blueprint system for interactive installations. Handles user input, state management, and real-time rendering. Designed for modularity and reusability across different projects.',
+    description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
     video: '/output/720p_animation.mp4',
     videoPosition: 'right' as const,
   },
@@ -40,19 +39,18 @@ export function Code() {
   const videoRefs = useRef<{ [key: number]: HTMLVideoElement | null }>({})
 
   return (
-    <Fade in timeout={600}>
-      <Box sx={{ width: '100%' }}>
-        <Container maxWidth="lg" sx={{ px: 4, py: 6, textAlign: 'center' }}>
-          <Stack spacing={2} alignItems="center">
-            <Typography variant="h2" sx={{ fontWeight: 700 }}>
-              Scripts and Game Logic
-            </Typography>
-            <Typography variant="h6" color="text.secondary" sx={{ maxWidth: 600 }}>
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Combining technical expertise
-              with creative problem-solving to build tools and systems that enhance the artistic process.
-            </Typography>
-          </Stack>
-        </Container>
+    <Box sx={{ width: '100%' }}>
+      <Container maxWidth="lg" sx={{ px: 4, py: 6, textAlign: 'center' }}>
+        <Stack spacing={2} alignItems="center">
+          <Typography level="h2" sx={{ fontWeight: 700 }}>
+            Scripts and Game Logic
+          </Typography>
+          <Typography level="title-lg" sx={{ maxWidth: 600 }}>
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Combining technical expertise
+            with creative problem-solving to build tools and systems that enhance the artistic process.
+          </Typography>
+        </Stack>
+      </Container>
 
         <Container maxWidth="lg" sx={{ px: 4, py: 4 }}>
           <Stack spacing={8}>
@@ -102,10 +100,10 @@ export function Code() {
                 </Box>
                 <Box sx={{ flex: 1 }}>
                   <Stack spacing={2}>
-                    <Typography variant="h5" sx={{ fontWeight: 700 }}>
+                    <Typography level="h4" sx={{ fontWeight: 700 }}>
                       {project.title}
                     </Typography>
-                    <Typography variant="body1" sx={{ color: 'text.secondary', lineHeight: 1.8 }}>
+                    <Typography level="body-md" sx={{ lineHeight: 1.8 }}>
                       {project.description}
                     </Typography>
                   </Stack>
@@ -114,7 +112,6 @@ export function Code() {
             ))}
           </Stack>
         </Container>
-      </Box>
-    </Fade>
+    </Box>
   )
 }

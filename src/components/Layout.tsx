@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import Box from '@mui/material/Box'
+import Box from '@mui/joy/Box'
 import { Banner } from './Banner'
 import { Footer } from './Footer'
 

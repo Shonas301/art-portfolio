@@ -1,10 +1,7 @@
 import { Link, useLocation } from 'react-router-dom'
-import AppBar from '@mui/material/AppBar'
-import Toolbar from '@mui/material/Toolbar'
-import Typography from '@mui/material/Typography'
-import Tabs from '@mui/material/Tabs'
-import Tab from '@mui/material/Tab'
-import Box from '@mui/material/Box'
+import Sheet from '@mui/joy/Sheet'
+import Typography from '@mui/joy/Typography'
+import Box from '@mui/joy/Box'
 
 const navItems = [
   { name: 'Home', path: '/' },
@@ -19,19 +16,21 @@ const navItems = [
 
 export function Banner() {
   const location = useLocation()
-  const currentTabIndex = navItems.findIndex(item => item.path === location.pathname)
 
   return (
-    <AppBar
-      position="sticky"
+    <Sheet
       sx={{
+        position: 'sticky',
+        top: 0,
+        zIndex: 1000,
         background: 'linear-gradient(90deg, #7e22ce 0%, #9333ea 50%, #ec4899 100%)',
         mb: 4,
+        boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
       }}
     >
-      <Toolbar sx={{ justifyContent: 'space-between', px: 6, py: 2 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 6, py: 2 }}>
         <Typography
-          variant="h4"
+          level="h3"
           component={Link}
           to="/"
           sx={{
@@ -55,47 +54,40 @@ export function Banner() {
             border: '4px solid',
             borderColor: '#fbbf24',
             overflow: 'hidden',
+            display: 'flex',
           }}
         >
-          <Tabs
-            value={currentTabIndex !== -1 ? currentTabIndex : false}
-            sx={{
-              minHeight: 'auto',
-              '& .MuiTabs-indicator': {
-                display: 'none',
-              },
-            }}
-          >
-            {navItems.map((item, index) => (
-              <Tab
+          {navItems.map((item, index) => {
+            const isActive = location.pathname === item.path
+            return (
+              <Box
                 key={item.path}
-                label={item.name}
                 component={Link}
                 to={item.path}
                 sx={{
-                  minHeight: 'auto',
+                  display: 'flex',
+                  alignItems: 'center',
                   py: 2,
                   px: 3,
                   fontWeight: 600,
                   fontSize: '1.125rem',
-                  color: '#7e22ce',
-                  textTransform: 'none',
+                  color: isActive ? 'white' : '#7e22ce',
+                  textDecoration: 'none',
                   transition: 'all 0.2s',
                   borderRight: index < navItems.length - 1 ? '2px solid #fef3c7' : 'none',
-                  '&.Mui-selected': {
-                    background: 'linear-gradient(90deg, #fbbf24 0%, #f59e0b 100%)',
-                    color: 'white',
-                  },
+                  background: isActive ? 'linear-gradient(90deg, #fbbf24 0%, #f59e0b 100%)' : 'transparent',
                   '&:hover': {
-                    bgcolor: '#fef3c7',
-                    color: '#ec4899',
+                    bgcolor: isActive ? undefined : '#fef3c7',
+                    color: isActive ? 'white' : '#ec4899',
                   },
                 }}
-              />
-            ))}
-          </Tabs>
+              >
+                {item.name}
+              </Box>
+            )
+          })}
         </Box>
-      </Toolbar>
+      </Box>
 
       {/* colorful bottom stripe */}
       <Box
@@ -104,6 +96,6 @@ export function Banner() {
           background: 'linear-gradient(90deg, #fbbf24 0%, #ec4899 50%, #f59e0b 100%)',
         }}
       />
-    </AppBar>
+    </Sheet>
   )
 }
