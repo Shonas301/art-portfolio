@@ -1,7 +1,13 @@
+import type { Metadata } from 'next'
 import Box from '@mui/joy/Box'
 import Container from '@mui/joy/Container'
 import Typography from '@mui/joy/Typography'
 import Stack from '@mui/joy/Stack'
+
+export const metadata: Metadata = {
+  title: 'pandy series - christina shi',
+  description: 'character-driven animation series',
+}
 
 const videoContent = [
   {
@@ -21,7 +27,7 @@ const videoContent = [
   },
 ]
 
-export function PandySeries() {
+export default function PandySeries() {
   return (
     <Box sx={{ width: '100%' }}>
       <Container maxWidth="md" sx={{ px: 4, py: 6 }}>

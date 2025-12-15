@@ -1,10 +1,16 @@
+import type { Metadata } from 'next'
 import Box from '@mui/joy/Box'
 import Container from '@mui/joy/Container'
 import Typography from '@mui/joy/Typography'
 import Sheet from '@mui/joy/Sheet'
 import Stack from '@mui/joy/Stack'
 
-export function DemoReel() {
+export const metadata: Metadata = {
+  title: 'demo reel - christina shi',
+  description: '3d generalist reel showcasing animation and modeling work',
+}
+
+export default function DemoReel() {
   return (
     <Box sx={{ width: '100%' }}>
       <Container maxWidth="lg" sx={{ px: 8, py: 4 }}>

@@ -1,3 +1,5 @@
+'use client'
+
 import { useState } from 'react'
 import Box from '@mui/joy/Box'
 import Container from '@mui/joy/Container'
@@ -64,7 +66,7 @@ const galleryItems: GalleryItem[] = [
   },
 ]
 
-export function ThreeDWork() {
+export default function ThreeDWork() {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null)
 
   const handlePrevious = () => {

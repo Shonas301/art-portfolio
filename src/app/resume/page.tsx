@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import Box from '@mui/joy/Box'
 import Container from '@mui/joy/Container'
 import Typography from '@mui/joy/Typography'
@@ -9,7 +10,12 @@ import List from '@mui/joy/List'
 import ListItem from '@mui/joy/ListItem'
 import DownloadIcon from '@mui/icons-material/Download'
 
-export function Resume() {
+export const metadata: Metadata = {
+  title: 'resume - christina shi',
+  description: '3d artist and animator resume',
+}
+
+export default function Resume() {
   return (
     <Box sx={{ width: '100%' }}>
       <Container maxWidth="md" sx={{ px: 4, py: 6 }}>

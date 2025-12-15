@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import Box from '@mui/joy/Box'
 import Container from '@mui/joy/Container'
 import Typography from '@mui/joy/Typography'
@@ -7,7 +8,12 @@ import LinkedInIcon from '@mui/icons-material/LinkedIn'
 import InstagramIcon from '@mui/icons-material/Instagram'
 import MailIcon from '@mui/icons-material/Mail'
 
-export function Contact() {
+export const metadata: Metadata = {
+  title: 'contact - christina shi',
+  description: 'get in touch with christina shi',
+}
+
+export default function Contact() {
   return (
     <Box
       sx={{

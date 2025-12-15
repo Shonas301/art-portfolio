@@ -1,3 +1,5 @@
+'use client'
+
 import Box from '@mui/joy/Box'
 import Modal from '@mui/joy/Modal'
 import ModalClose from '@mui/joy/ModalClose'

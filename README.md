@@ -1,73 +1,70 @@
-# React + TypeScript + Vite
+# christina shi art portfolio
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+3d artist portfolio built with next.js 15, mui joy, and typescript.
 
-Currently, two official plugins are available:
+## tech stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- next.js 15 (app router)
+- react 19
+- typescript 5.9
+- mui joy ui 5.0
+- emotion (css-in-js)
+- pnpm 10.10
 
-## React Compiler
+## development
 
-The React Compiler is currently not compatible with SWC. See [this issue](https://github.com/vitejs/vite-plugin-react/issues/428) for tracking the progress.
+```bash
+# install dependencies
+pnpm install
 
-## Expanding the ESLint configuration
+# run development server
+pnpm dev
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+# open http://localhost:3000
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## build
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+```bash
+# create production build
+pnpm build
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+# start production server
+pnpm start
 ```
+
+## project structure
+
+```
+src/
+├── app/                    # next.js app router
+│   ├── layout.tsx         # root layout with theme
+│   ├── page.tsx           # home page
+│   ├── demo-reel/
+│   ├── 3d-work/
+│   ├── pandy-series/
+│   ├── code/
+│   ├── 2d-work/
+│   ├── resume/
+│   └── contact/
+├── components/            # reusable components
+│   ├── Banner.tsx        # navigation
+│   ├── Footer.tsx
+│   ├── GalleryGrid.tsx
+│   ├── GalleryModal.tsx
+│   └── ThemeProvider.tsx
+├── lib/
+│   └── theme.ts          # mui joy theme config
+├── styles/
+│   └── globals.css       # global styles
+└── types/
+    └── gallery.ts
+```
+
+## previous version
+
+the vite + react router version is preserved in:
+- git tag: `v1.0.0`
+- git branch: `v1`
+
+to view: `git checkout v1`

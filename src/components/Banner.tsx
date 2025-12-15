@@ -1,4 +1,7 @@
-import { Link, useLocation } from 'react-router-dom'
+'use client'
+
+import { usePathname } from 'next/navigation'
+import Link from 'next/link'
 import Sheet from '@mui/joy/Sheet'
 import Typography from '@mui/joy/Typography'
 import Box from '@mui/joy/Box'
@@ -15,7 +18,7 @@ const navItems = [
 ]
 
 export function Banner() {
-  const location = useLocation()
+  const pathname = usePathname()
 
   return (
     <Sheet
@@ -32,7 +35,7 @@ export function Banner() {
         <Typography
           level="h3"
           component={Link}
-          to="/"
+          href="/"
           sx={{
             fontWeight: 700,
             color: 'white',
@@ -58,12 +61,12 @@ export function Banner() {
           }}
         >
           {navItems.map((item, index) => {
-            const isActive = location.pathname === item.path
+            const isActive = pathname === item.path
             return (
               <Box
                 key={item.path}
                 component={Link}
-                to={item.path}
+                href={item.path}
                 sx={{
                   display: 'flex',
                   alignItems: 'center',

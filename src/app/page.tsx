@@ -1,4 +1,6 @@
-import { Link } from 'react-router-dom'
+'use client'
+
+import Link from 'next/link'
 import Box from '@mui/joy/Box'
 import Container from '@mui/joy/Container'
 import Typography from '@mui/joy/Typography'
@@ -6,7 +8,7 @@ import Button from '@mui/joy/Button'
 import Sheet from '@mui/joy/Sheet'
 import Stack from '@mui/joy/Stack'
 
-export function Home() {
+export default function Home() {
   return (
     <Box sx={{ width: '100%' }}>
       {/* hero section */}
@@ -82,7 +84,7 @@ export function Home() {
           </Sheet>
           <Button
             component={Link}
-            to="/demo-reel"
+            href="/demo-reel"
             variant="solid"
             size="lg"
             sx={{
@@ -150,7 +152,7 @@ export function Home() {
             </Sheet>
             <Button
               component={Link}
-              to="/pandy-series"
+              href="/pandy-series"
               variant="solid"
               size="lg"
               sx={{

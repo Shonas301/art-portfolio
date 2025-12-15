@@ -1,3 +1,5 @@
+'use client'
+
 import { useRef } from 'react'
 import Box from '@mui/joy/Box'
 import Container from '@mui/joy/Container'
@@ -35,7 +37,7 @@ const codeProjects = [
   },
 ]
 
-export function Code() {
+export default function Code() {
   const videoRefs = useRef<{ [key: number]: HTMLVideoElement | null }>({})
 
   return (
