@@ -33,13 +33,13 @@ export default function Resume() {
               {/* header */}
               <Box sx={{ textAlign: 'center' }}>
                 <Typography level="h3" sx={{ fontWeight: 700, mb: 1 }}>
-                  Artist Name
+                  Edward Elric
                 </Typography>
                 <Typography level="body-md">
-                  3D Artist & Animator
+                  State Alchemist - The Fullmetal Alchemist
                 </Typography>
                 <Typography level="body-sm" sx={{ mt: 1 }}>
-                  email@email.edu | New York, NY | linkedin.com/in/artist
+                  fullmetal@amestris.mil | Central City, Amestris | State Alchemist License #10011
                 </Typography>
               </Box>
 
@@ -49,10 +49,11 @@ export default function Resume() {
                   Professional Summary
                 </Typography>
                 <Typography level="body-md">
-                  3D artist and animator with a unique background in software engineering and technical art.
-                  Specializing in Maya, Blender, and Unreal Engine, with expertise in creating engaging character
-                  animations and immersive environments. Passionate about combining technical skills with artistic
-                  vision to create compelling visual narratives.
+                  youngest state alchemist in amestrian history, certified at age 12. specialist in transmutation
+                  without transmutation circles, combat alchemy, and alchemical theory. proven track record in
+                  field operations, crisis response, and complex problem-solving. currently researching advanced
+                  alchemical applications while serving the amestrian military. known for innovative approaches
+                  to seemingly impossible challenges.
                 </Typography>
               </Stack>
 
@@ -65,29 +66,29 @@ export default function Resume() {
                   <Box>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', mb: 0.5 }}>
                       <Typography level="title-md" sx={{ fontWeight: 600 }}>
-                        3D Artist / Animator
+                        state alchemist - the fullmetal alchemist
                       </Typography>
                       <Typography level="body-sm">
-                        2022 - Present
+                        1911 - present
                       </Typography>
                     </Box>
                     <Typography level="body-sm" sx={{ mb: 1 }}>
-                      Freelance, New York, NY
+                      amestrian state military, central command
                     </Typography>
                     <List size="sm" sx={{ listStyleType: 'disc', pl: 2 }}>
                       <ListItem sx={{ display: 'list-item', p: 0 }}>
                         <Typography level="body-sm">
-                          Created character animations and environmental assets for various client projects
+                          conducted field research on advanced alchemical theory and philosopher's stone applications
                         </Typography>
                       </ListItem>
                       <ListItem sx={{ display: 'list-item', p: 0 }}>
                         <Typography level="body-sm">
-                          Developed custom Maya tools to streamline production pipeline
+                          executed high-priority missions involving chimera threats, homunculus encounters, and national security
                         </Typography>
                       </ListItem>
                       <ListItem sx={{ display: 'list-item', p: 0 }}>
                         <Typography level="body-sm">
-                          Collaborated with directors and designers to bring creative visions to life
+                          pioneered circle-free transmutation techniques, improving combat response time by 300%
                         </Typography>
                       </ListItem>
                     </List>
@@ -96,29 +97,29 @@ export default function Resume() {
                   <Box>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', mb: 0.5 }}>
                       <Typography level="title-md" sx={{ fontWeight: 600 }}>
-                        Technical Artist
+                        independent alchemist / researcher
                       </Typography>
                       <Typography level="body-sm">
-                        2020 - 2022
+                        1909 - 1911
                       </Typography>
                     </Box>
                     <Typography level="body-sm" sx={{ mb: 1 }}>
-                      Animation Studio, Brooklyn, NY
+                      self-employed, resembool & eastern amestris
                     </Typography>
                     <List size="sm" sx={{ listStyleType: 'disc', pl: 2 }}>
                       <ListItem sx={{ display: 'list-item', p: 0 }}>
                         <Typography level="body-sm">
-                          Bridged gap between art and engineering teams
+                          researched human transmutation and its consequences alongside alphonse elric
                         </Typography>
                       </ListItem>
                       <ListItem sx={{ display: 'list-item', p: 0 }}>
                         <Typography level="body-sm">
-                          Optimized rendering workflows and developed procedural generation systems
+                          traveled extensively to study with master alchemists and gather ancient texts
                         </Typography>
                       </ListItem>
                       <ListItem sx={{ display: 'list-item', p: 0 }}>
                         <Typography level="body-sm">
-                          Mentored junior artists on technical workflows and best practices
+                          developed expertise in automail integration and biomechanical adaptation
                         </Typography>
                       </ListItem>
                     </List>
@@ -134,39 +135,39 @@ export default function Resume() {
                 <Stack direction="row" spacing={4}>
                   <Box sx={{ flex: 1 }}>
                     <Typography level="title-sm" sx={{ fontWeight: 600, mb: 1 }}>
-                      3D Software
+                      alchemical abilities
                     </Typography>
                     <List size="sm">
                       <ListItem sx={{ p: 0 }}>
-                        <Typography level="body-sm">Autodesk Maya</Typography>
+                        <Typography level="body-sm">transmutation without circles</Typography>
                       </ListItem>
                       <ListItem sx={{ p: 0 }}>
-                        <Typography level="body-sm">Blender</Typography>
+                        <Typography level="body-sm">combat alchemy</Typography>
                       </ListItem>
                       <ListItem sx={{ p: 0 }}>
-                        <Typography level="body-sm">Unreal Engine</Typography>
+                        <Typography level="body-sm">material transmutation</Typography>
                       </ListItem>
                       <ListItem sx={{ p: 0 }}>
-                        <Typography level="body-sm">ZBrush</Typography>
+                        <Typography level="body-sm">alchemical theory & research</Typography>
                       </ListItem>
                     </List>
                   </Box>
                   <Box sx={{ flex: 1 }}>
                     <Typography level="title-sm" sx={{ fontWeight: 600, mb: 1 }}>
-                      Technical
+                      combat & technical
                     </Typography>
                     <List size="sm">
                       <ListItem sx={{ p: 0 }}>
-                        <Typography level="body-sm">Python Scripting</Typography>
+                        <Typography level="body-sm">hand-to-hand combat</Typography>
                       </ListItem>
                       <ListItem sx={{ p: 0 }}>
-                        <Typography level="body-sm">Houdini VEX</Typography>
+                        <Typography level="body-sm">automail maintenance</Typography>
                       </ListItem>
                       <ListItem sx={{ p: 0 }}>
-                        <Typography level="body-sm">Git Version Control</Typography>
+                        <Typography level="body-sm">strategic planning</Typography>
                       </ListItem>
                       <ListItem sx={{ p: 0 }}>
-                        <Typography level="body-sm">Pipeline Development</Typography>
+                        <Typography level="body-sm">xingese alkahestry (basic)</Typography>
                       </ListItem>
                     </List>
                   </Box>
@@ -176,19 +177,32 @@ export default function Resume() {
               {/* education */}
               <Stack spacing={1.5}>
                 <Typography level="title-lg" sx={{ fontWeight: 700 }}>
-                  Education
+                  education & certifications
                 </Typography>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
                   <Box>
                     <Typography level="title-md" sx={{ fontWeight: 600 }}>
-                      Bachelor of Fine Arts in Animation
+                      state alchemist certification
                     </Typography>
                     <Typography level="body-sm">
-                      University Name
+                      amestrian state military - youngest ever certified
                     </Typography>
                   </Box>
                   <Typography level="body-sm">
-                    2020
+                    1911
+                  </Typography>
+                </Box>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', mt: 1.5 }}>
+                  <Box>
+                    <Typography level="title-md" sx={{ fontWeight: 600 }}>
+                      self-directed alchemical studies
+                    </Typography>
+                    <Typography level="body-sm">
+                      trained under izumi curtis, master alchemist - resembool
+                    </Typography>
+                  </Box>
+                  <Typography level="body-sm">
+                    1908 - 1909
                   </Typography>
                 </Box>
               </Stack>
