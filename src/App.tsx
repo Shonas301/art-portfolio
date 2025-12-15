@@ -1,34 +1,36 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { ThemeProvider } from '@mui/material/styles'
+import CssBaseline from '@mui/material/CssBaseline'
+import { theme } from './theme'
+import { Layout } from './components/Layout'
+import { Home } from './pages/Home'
+import { DemoReel } from './pages/DemoReel'
+import { ThreeDWork } from './pages/ThreeDWork'
+import { PandySeries } from './pages/PandySeries'
+import { Code } from './pages/Code'
+import { TwoDWork } from './pages/TwoDWork'
+import { Resume } from './pages/Resume'
+import { Contact } from './pages/Contact'
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <BrowserRouter>
+        <Layout>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/demo-reel" element={<DemoReel />} />
+            <Route path="/3d-work" element={<ThreeDWork />} />
+            <Route path="/pandy-series" element={<PandySeries />} />
+            <Route path="/code" element={<Code />} />
+            <Route path="/2d-work" element={<TwoDWork />} />
+            <Route path="/resume" element={<Resume />} />
+            <Route path="/contact" element={<Contact />} />
+          </Routes>
+        </Layout>
+      </BrowserRouter>
+    </ThemeProvider>
   )
 }
 
