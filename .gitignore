@@ -29,5 +29,6 @@ next-env.d.ts
 *.sln
 *.sw?
 progress.md
-output
+/output
 .spec
+!public/output
