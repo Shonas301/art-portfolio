@@ -7,14 +7,14 @@ import Typography from '@mui/joy/Typography'
 import Box from '@mui/joy/Box'
 
 const navItems = [
-  { name: 'Home', path: '/' },
-  { name: 'Demo Reel', path: '/demo-reel' },
-  { name: '3D Work', path: '/3d-work' },
-  { name: 'Pandy Series', path: '/pandy-series' },
-  { name: 'Code', path: '/code' },
-  { name: '2D Work', path: '/2d-work' },
-  { name: 'Resume', path: '/resume' },
-  { name: 'Contact', path: '/contact' },
+  { name: 'Home', path: '/v1' },
+  { name: 'Demo Reel', path: '/v1/demo-reel' },
+  { name: '3D Work', path: '/v1/3d-work' },
+  { name: 'Pandy Series', path: '/v1/pandy-series' },
+  { name: 'Code', path: '/v1/code' },
+  { name: '2D Work', path: '/v1/2d-work' },
+  { name: 'Resume', path: '/v1/resume' },
+  { name: 'Contact', path: '/v1/contact' },
 ]
 
 export function Banner() {
@@ -35,7 +35,7 @@ export function Banner() {
         <Typography
           level="h3"
           component={Link}
-          href="/"
+          href="/v1"
           sx={{
             fontWeight: 700,
             color: 'white',
