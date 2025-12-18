@@ -37,7 +37,7 @@ export default function Home() {
             lineHeight: 1.7,
           }}
         >
-          Hello! I'm a 3D artist based in NYC. I combine my background in tech and
+          Hello! I&apos;m a 3D artist based in NYC. I combine my background in tech and
           software engineering with my love of art and animation to create beautiful
           things!
         </Typography>
@@ -72,12 +72,13 @@ export default function Home() {
             <Box
               component="video"
               controls
+              preload="metadata"
               sx={{
                 width: '100%',
                 height: '100%',
                 display: 'block',
               }}
-              src="/output/720p_animation.mp4"
+              src="/output/web_optimized.mp4"
             >
               Your browser does not support the video tag.
             </Box>
@@ -140,12 +141,13 @@ export default function Home() {
               <Box
                 component="video"
                 controls
+                preload="metadata"
                 sx={{
                   width: '100%',
                   height: '100%',
                   display: 'block',
                 }}
-                src="/output/720p_animation.mp4"
+                src="/output/web_optimized.mp4"
               >
                 Your browser does not support the video tag.
               </Box>

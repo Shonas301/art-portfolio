@@ -37,7 +37,7 @@ export default function Contact() {
           </Typography>
 
           <Typography level="title-lg">
-            I'm always interested in new projects and collaborations.
+            I&apos;m always interested in new projects and collaborations.
             Feel free to reach out!
           </Typography>
 

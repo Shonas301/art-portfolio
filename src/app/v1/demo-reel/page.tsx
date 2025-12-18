@@ -37,7 +37,7 @@ export default function DemoReel() {
               height: '100%',
               display: 'block',
             }}
-            src="/output/720p_animation.mp4"
+            src="/output/web_optimized.mp4"
           >
             Your browser does not support the video tag.
           </Box>

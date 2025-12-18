@@ -30,5 +30,5 @@ next-env.d.ts
 *.sw?
 progress.md
 /output
-.spec
-!public/output
+*spec*
+public

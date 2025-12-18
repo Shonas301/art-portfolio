@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import Box from '@mui/joy/Box'
 import Modal from '@mui/joy/Modal'
 import ModalClose from '@mui/joy/ModalClose'
@@ -101,6 +102,7 @@ export function GalleryModal({ open, item, onClose, onPrevious, onNext }: Galler
                   controls
                   autoPlay
                   loop
+                  preload="auto"
                   style={{
                     maxWidth: '100%',
                     maxHeight: '100%',
@@ -110,15 +112,25 @@ export function GalleryModal({ open, item, onClose, onPrevious, onNext }: Galler
                   <source src={item.src} type="video/mp4" />
                 </video>
               ) : (
-                <img
-                  src={item.src}
-                  alt={item.title}
-                  style={{
-                    maxWidth: '100%',
-                    maxHeight: '100%',
-                    objectFit: 'contain',
+                <Box
+                  sx={{
+                    position: 'relative',
+                    width: '100%',
+                    height: '100%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
                   }}
-                />
+                >
+                  <Image
+                    src={item.src}
+                    alt={item.title}
+                    fill
+                    sizes="85vw"
+                    style={{ objectFit: 'contain' }}
+                    priority
+                  />
+                </Box>
               )}
             </Box>
 

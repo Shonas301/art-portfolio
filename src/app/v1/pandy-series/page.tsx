@@ -12,17 +12,17 @@ export const metadata: Metadata = {
 const videoContent = [
   {
     id: 1,
-    src: '/output/720p_animation.mp4',
+    src: '/output/web_optimized.mp4',
     description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
   },
   {
     id: 2,
-    src: '/output/720p_animation.mp4',
+    src: '/output/web_optimized.mp4',
     description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
   },
   {
     id: 3,
-    src: '/output/720p_animation.mp4',
+    src: '/output/web_optimized.mp4',
     description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
   },
 ]

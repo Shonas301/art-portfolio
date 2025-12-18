@@ -78,7 +78,7 @@ export default function Resume() {
                     <List size="sm" sx={{ listStyleType: 'disc', pl: 2 }}>
                       <ListItem sx={{ display: 'list-item', p: 0 }}>
                         <Typography level="body-sm">
-                          conducted field research on advanced alchemical theory and philosopher's stone applications
+                          conducted field research on advanced alchemical theory and philosopher&apos;s stone applications
                         </Typography>
                       </ListItem>
                       <ListItem sx={{ display: 'list-item', p: 0 }}>

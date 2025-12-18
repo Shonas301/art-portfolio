@@ -1,9 +1,7 @@
 import type { Metadata } from 'next'
 import { ThemeProvider } from '@/components/ThemeProvider'
-import { Banner } from '@/components/Banner'
-import { Footer } from '@/components/Footer'
-import Box from '@mui/joy/Box'
 import '@/styles/globals.css'
+import { LayoutContent } from '@/components/LayoutContent'
 
 export const metadata: Metadata = {
   title: 'christina shi - 3d artist portfolio',
@@ -19,19 +17,7 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <ThemeProvider>
-          <Box
-            sx={{
-              minHeight: '100vh',
-              display: 'flex',
-              flexDirection: 'column',
-            }}
-          >
-            <Banner />
-            <Box component="main" sx={{ flex: 1 }}>
-              {children}
-            </Box>
-            <Footer />
-          </Box>
+          <LayoutContent>{children}</LayoutContent>
         </ThemeProvider>
       </body>
     </html>

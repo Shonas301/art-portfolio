@@ -1,6 +1,7 @@
 'use client'
 
 import { useRef } from 'react'
+import Image from 'next/image'
 import Box from '@mui/joy/Box'
 import Card from '@mui/joy/Card'
 import CardContent from '@mui/joy/CardContent'
@@ -61,6 +62,7 @@ export function GalleryGrid({ items, onItemClick }: GalleryGridProps) {
                 }}
                 muted
                 loop
+                preload="none"
                 poster={item.thumbnail}
                 style={{
                   width: '100%',
@@ -71,10 +73,14 @@ export function GalleryGrid({ items, onItemClick }: GalleryGridProps) {
                 <source src={item.src} type="video/mp4" />
               </video>
             ) : (
-              <img
+              <Image
                 src={item.src}
                 alt={item.title}
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                fill
+                sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                style={{ objectFit: 'cover' }}
+                loading={index < 3 ? 'eager' : 'lazy'}
+                priority={index < 3}
               />
             )}
           </Box>
