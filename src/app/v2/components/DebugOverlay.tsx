@@ -20,7 +20,7 @@ export function DebugOverlay() {
 
   // ensure component only renders on client to avoid hydration mismatch
   useEffect(() => {
-    setIsMounted(true)
+    setIsMounted(true) // eslint-disable-line react-hooks/set-state-in-effect
   }, [])
 
   // track flip performance
@@ -28,6 +28,7 @@ export function DebugOverlay() {
     if (!isMounted) return
 
     if (state.isFlipping && flipStartTime === null) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setFlipStartTime(performance.now())
     } else if (!state.isFlipping && flipStartTime !== null) {
       const duration = performance.now() - flipStartTime

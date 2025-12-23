@@ -3,26 +3,29 @@
 import Box from '@mui/joy/Box'
 import Typography from '@mui/joy/Typography'
 import { useFlipBook } from '../context/FlipBookContext'
-import { pageContent } from '../data/portfolio-content'
+import { sectionMappings } from '../data/portfolio-content'
 
 export function MobileNav() {
   const { state, dispatch } = useFlipBook()
 
-  const handleTabClick = (pageIndex: number) => {
-    if (pageIndex === state.currentPageIndex) return
-
-    const distance = Math.abs(pageIndex - state.currentPageIndex)
-
-    if (distance > 1) {
-      dispatch({ type: 'START_RIFFLE', payload: pageIndex })
-    } else {
-      dispatch({ type: 'FLIP_TO_PAGE', payload: pageIndex })
-    }
+  const handleTabClick = (physicalPage: number) => {
+    if (physicalPage === state.currentPageIndex) return
+    dispatch({ type: 'FLIP_TO_PAGE', payload: physicalPage })
   }
 
   const handleResumeClick = () => {
     dispatch({ type: 'OPEN_RESUME' })
   }
+
+  // find which section the current page belongs to (or is closest to)
+  const currentSection = sectionMappings.reduce((closest, section) => {
+    if (section.physicalPage <= state.currentPageIndex) {
+      if (!closest || section.physicalPage > closest.physicalPage) {
+        return section
+      }
+    }
+    return closest
+  }, null as typeof sectionMappings[0] | null)
 
   return (
     <Box
@@ -43,12 +46,12 @@ export function MobileNav() {
         py: 1,
       }}
     >
-      {pageContent.map((page, index) => {
-        const isActive = state.currentPageIndex === index
+      {sectionMappings.map((section) => {
+        const isActive = currentSection?.id === section.id
         return (
           <Box
-            key={page.id}
-            onClick={() => handleTabClick(index)}
+            key={section.id}
+            onClick={() => handleTabClick(section.physicalPage)}
             sx={{
               minWidth: '60px',
               height: '50px',
@@ -83,7 +86,7 @@ export function MobileNav() {
                 px: 1,
               }}
             >
-              {page.section}
+              {section.section}
             </Typography>
           </Box>
         )

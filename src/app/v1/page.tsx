@@ -70,18 +70,18 @@ export default function Home() {
             }}
           >
             <Box
-              component="video"
-              controls
-              preload="metadata"
+              component="iframe"
+              src="https://www.youtube.com/embed/bdrST1IbN3k"
+              title="Demo Reel"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
               sx={{
                 width: '100%',
                 height: '100%',
                 display: 'block',
+                border: 'none',
               }}
-              src="/output/web_optimized.mp4"
-            >
-              Your browser does not support the video tag.
-            </Box>
+            />
           </Sheet>
           <Button
             component={Link}
@@ -139,18 +139,18 @@ export default function Home() {
               }}
             >
               <Box
-                component="video"
-                controls
-                preload="metadata"
+                component="iframe"
+                src="https://www.youtube.com/embed/bdrST1IbN3k"
+                title="Pandy Series"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
                 sx={{
                   width: '100%',
                   height: '100%',
                   display: 'block',
+                  border: 'none',
                 }}
-                src="/output/web_optimized.mp4"
-              >
-                Your browser does not support the video tag.
-              </Box>
+              />
             </Sheet>
             <Button
               component={Link}

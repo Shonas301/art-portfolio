@@ -1,6 +1,3 @@
-'use client'
-
-import { useRef } from 'react'
 import Box from '@mui/joy/Box'
 import Container from '@mui/joy/Container'
 import Typography from '@mui/joy/Typography'
@@ -11,35 +8,33 @@ const codeProjects = [
     id: 1,
     title: 'Physics Simulation',
     description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
-    video: '/output/web_optimized.mp4',
+    video: 'https://www.youtube.com/embed/bdrST1IbN3k',
     videoPosition: 'left' as const,
   },
   {
     id: 2,
     title: 'Animation Pipeline Tool',
     description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
-    video: '/output/web_optimized.mp4',
+    video: 'https://www.youtube.com/embed/bdrST1IbN3k',
     videoPosition: 'right' as const,
   },
   {
     id: 3,
     title: 'Procedural Generation System',
     description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
-    video: '/output/web_optimized.mp4',
+    video: 'https://www.youtube.com/embed/bdrST1IbN3k',
     videoPosition: 'left' as const,
   },
   {
     id: 4,
     title: 'Game Logic Framework',
     description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
-    video: '/output/web_optimized.mp4',
+    video: 'https://www.youtube.com/embed/bdrST1IbN3k',
     videoPosition: 'right' as const,
   },
 ]
 
 export default function Code() {
-  const videoRefs = useRef<{ [key: number]: HTMLVideoElement | null }>({})
-
   return (
     <Box sx={{ width: '100%' }}>
       <Container maxWidth="lg" sx={{ px: 4, py: 6, textAlign: 'center' }}>
@@ -71,33 +66,19 @@ export default function Code() {
                       borderRadius: 2,
                       overflow: 'hidden',
                     }}
-                    onMouseEnter={() => {
-                      if (videoRefs.current[project.id]) {
-                        videoRefs.current[project.id]?.play()
-                      }
-                    }}
-                    onMouseLeave={() => {
-                      if (videoRefs.current[project.id]) {
-                        videoRefs.current[project.id]?.pause()
-                      }
-                    }}
                   >
                     <Box
-                      component="video"
-                      ref={(el: HTMLVideoElement | null) => {
-                        videoRefs.current[project.id] = el
-                      }}
-                      muted
-                      loop
+                      component="iframe"
+                      src={project.video}
+                      title={project.title}
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
                       sx={{
                         width: '100%',
                         height: '100%',
-                        objectFit: 'cover',
+                        border: 'none',
                       }}
-                      src={project.video}
-                    >
-                      Your browser does not support the video tag.
-                    </Box>
+                    />
                   </Box>
                 </Box>
                 <Box sx={{ flex: 1 }}>

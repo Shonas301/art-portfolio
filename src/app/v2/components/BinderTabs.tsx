@@ -3,23 +3,14 @@
 import Box from '@mui/joy/Box'
 import Typography from '@mui/joy/Typography'
 import { useFlipBook } from '../context/FlipBookContext'
-import { pageContent } from '../data/portfolio-content'
+import { sectionMappings, TOTAL_PAGES } from '../data/portfolio-content'
 
 export function BinderTabs() {
   const { state, dispatch } = useFlipBook()
 
-  const handleTabClick = (pageIndex: number) => {
-    if (state.debugMode) {
-      console.log('[TAB] Clicked:', pageIndex, 'Current:', state.currentPageIndex)
-    }
-
-    if (pageIndex === state.currentPageIndex) {
-      if (state.debugMode) console.log('[TAB] Same page, ignoring')
-      return
-    }
-
-    if (state.debugMode) console.log('[TAB] Dispatching flip to page:', pageIndex)
-    dispatch({ type: 'FLIP_TO_PAGE', payload: pageIndex })
+  const handleTabClick = (physicalPage: number) => {
+    if (physicalPage === state.currentPageIndex) return
+    dispatch({ type: 'FLIP_TO_PAGE', payload: physicalPage })
   }
 
   const handleResumeClick = () => {
@@ -29,78 +20,94 @@ export function BinderTabs() {
   return (
     <Box
       sx={{
-        position: 'fixed',
+        position: 'absolute',
         right: 0,
-        top: '10%',
-        height: '80%',
-        display: { xs: 'none', md: 'flex' },
-        flexDirection: 'column',
-        justifyContent: 'space-evenly',
-        zIndex: 1000,
-        pointerEvents: 'auto',
+        top: 0,
+        bottom: 0,
+        width: 0, // tabs extend beyond this
+        zIndex: 2000,
+        pointerEvents: 'none',
       }}
     >
-      {pageContent.map((page, index) => {
-        const isActive = state.currentPageIndex === index
-        const isPastPage = index < state.currentPageIndex
-        const isFuturePage = index > state.currentPageIndex
+      {sectionMappings.map((section) => {
+        const { physicalPage } = section
+        const isActive = state.currentPageIndex === physicalPage
 
-        // calculate depth offset
-        // future pages (in the stack) should be offset based on their distance
-        // past pages should be flush with the edge (they've been flipped past)
-        const depthOffset = isFuturePage
-          ? (index - state.currentPageIndex) * 6 // matches page edge offset
-          : 0
+        const isBehind = physicalPage < state.currentPageIndex
+        const isCurrent = physicalPage === state.currentPageIndex
+
+        // calculate position in the stack (how deep this page is)
+        const pagesFromCurrent = Math.abs(physicalPage - state.currentPageIndex)
+        const depthInStack = isBehind ? 0 : pagesFromCurrent
+
+        // tab sticks out from the page edge
+        // depth affects how far right the tab appears (follows page edge offset)
+        const pageEdgeOffset = isBehind ? 0 : Math.min(depthInStack * 1.5, 40)
+
+        // vertical position - spread tabs across height, adjusted by page position
+        // tabs should be at consistent vertical positions relative to book
+        const tabIndex = sectionMappings.findIndex(s => s.id === section.id)
+        const totalTabs = sectionMappings.length
+        const verticalPercent = 12 + (tabIndex * (76 / (totalTabs - 1))) // 12% to 88%
+
+        // tab width - slightly shorter for deeper pages
+        const tabWidth = isBehind ? 100 : 100 - depthInStack * 0.8
+
+        // opacity - flipped tabs are ghosted, deeper tabs fade slightly
+        const tabOpacity = isBehind ? 0.35 : isCurrent ? 1 : Math.max(0.7, 1 - depthInStack * 0.015)
 
         return (
           <Box
-            key={page.id}
-            onClick={() => handleTabClick(index)}
+            key={section.id}
+            onClick={() => handleTabClick(physicalPage)}
             sx={{
-              // thin post-it style tab
-              width: '140px',
-              height: '28px',
-              background: isActive
-                ? 'linear-gradient(135deg, #ec4899 0%, #f472b6 100%)'
-                : isPastPage
-                  ? 'linear-gradient(135deg, #6366f1 0%, #818cf8 100%)'
+              position: 'absolute',
+              right: 0,
+              top: `${verticalPercent}%`,
+              transform: `translateX(calc(100% + ${pageEdgeOffset}px)) translateY(-50%)`,
+              width: `${tabWidth}px`,
+              height: '32px',
+              background: isBehind
+                ? 'linear-gradient(135deg, #a78bfa 0%, #c4b5fd 100%)' // lighter/desaturated for flipped
+                : isActive
+                  ? 'linear-gradient(135deg, #ec4899 0%, #f472b6 100%)'
                   : 'linear-gradient(135deg, #9333ea 0%, #a855f7 100%)',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'flex-end',
-              paddingRight: '12px',
-              borderRadius: '4px 0 0 4px',
-              transition: 'all 0.3s ease',
-              boxShadow: isActive
-                ? '-3px 2px 8px rgba(236, 72, 153, 0.4)'
-                : `-2px 1px 6px rgba(147, 51, 234, ${0.3 - (depthOffset * 0.02)})`,
+              paddingRight: '10px',
+              borderRadius: '0 6px 6px 0',
+              transition: 'all 0.25s ease',
+              boxShadow: isBehind
+                ? '1px 1px 4px rgba(147, 51, 234, 0.15)'
+                : isActive
+                  ? '3px 2px 10px rgba(236, 72, 153, 0.5), inset 0 1px 0 rgba(255,255,255,0.2)'
+                  : `2px 2px 8px rgba(147, 51, 234, ${0.35 - depthInStack * 0.008})`,
               pointerEvents: 'auto',
-              // position based on depth in stack
-              transform: `translateX(-${depthOffset}px)`,
-              opacity: isFuturePage ? Math.max(0.7, 1 - (depthOffset * 0.025)) : 1,
-              // add slight paper texture
-              backgroundImage: `
-                linear-gradient(135deg, ${isActive ? '#ec4899' : isPastPage ? '#6366f1' : '#9333ea'} 0%, ${isActive ? '#f472b6' : isPastPage ? '#818cf8' : '#a855f7'} 100%),
-                repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(255,255,255,0.03) 2px, rgba(255,255,255,0.03) 4px)
-              `,
-              // subtle fold effect at the edge
-              '&::after': {
+              opacity: tabOpacity,
+              zIndex: isBehind ? 1 : TOTAL_PAGES - physicalPage,
+              // left edge connects to page
+              '&::before': {
                 content: '""',
                 position: 'absolute',
-                right: 0,
+                left: 0,
                 top: 0,
                 bottom: 0,
                 width: '4px',
-                background: 'linear-gradient(90deg, rgba(0,0,0,0.1) 0%, transparent 100%)',
-                pointerEvents: 'none',
+                background: isBehind
+                  ? 'linear-gradient(90deg, rgba(0,0,0,0.08) 0%, transparent 100%)'
+                  : 'linear-gradient(90deg, rgba(0,0,0,0.15) 0%, transparent 100%)',
+                borderRadius: '0 0 0 0',
               },
               '&:hover': {
-                width: '150px',
-                boxShadow: isActive
-                  ? '-4px 3px 12px rgba(236, 72, 153, 0.5)'
-                  : `-3px 2px 10px rgba(147, 51, 234, 0.4)`,
-                opacity: 1,
+                width: `${tabWidth + 12}px`,
+                boxShadow: isBehind
+                  ? '2px 2px 8px rgba(147, 51, 234, 0.3)'
+                  : isActive
+                    ? '4px 3px 14px rgba(236, 72, 153, 0.6)'
+                    : '3px 3px 12px rgba(147, 51, 234, 0.5)',
+                opacity: isBehind ? 0.6 : 1,
               },
             }}
           >
@@ -108,24 +115,30 @@ export function BinderTabs() {
               sx={{
                 color: 'white',
                 fontWeight: 600,
-                fontSize: '0.75rem',
+                fontSize: '0.72rem',
                 textTransform: 'lowercase',
                 userSelect: 'none',
-                letterSpacing: '0.02em',
+                letterSpacing: '0.03em',
+                textShadow: '0 1px 2px rgba(0,0,0,0.25)',
+                whiteSpace: 'nowrap',
               }}
             >
-              {page.section}
+              {section.section}
             </Typography>
           </Box>
         )
       })}
 
-      {/* resume tab - special behavior */}
+      {/* resume tab - special, always visible at bottom */}
       <Box
         onClick={handleResumeClick}
         sx={{
-          width: '140px',
-          height: '28px',
+          position: 'absolute',
+          right: 0,
+          bottom: '8%',
+          transform: 'translateX(100%)',
+          width: '100px',
+          height: '32px',
           background: state.resumeOpen
             ? 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)'
             : 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
@@ -133,32 +146,28 @@ export function BinderTabs() {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'flex-end',
-          paddingRight: '12px',
-          borderRadius: '4px 0 0 4px',
-          transition: 'all 0.3s ease',
+          paddingRight: '10px',
+          borderRadius: '0 6px 6px 0',
+          transition: 'all 0.25s ease',
           boxShadow: state.resumeOpen
-            ? '-3px 2px 8px rgba(251, 191, 36, 0.4)'
-            : '-2px 1px 6px rgba(245, 158, 11, 0.3)',
+            ? '3px 2px 10px rgba(251, 191, 36, 0.5)'
+            : '2px 2px 8px rgba(245, 158, 11, 0.35)',
           pointerEvents: 'auto',
-          backgroundImage: `
-            linear-gradient(135deg, ${state.resumeOpen ? '#fbbf24' : '#f59e0b'} 0%, ${state.resumeOpen ? '#f59e0b' : '#d97706'} 100%),
-            repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(255,255,255,0.03) 2px, rgba(255,255,255,0.03) 4px)
-          `,
-          '&::after': {
+          zIndex: TOTAL_PAGES + 10,
+          '&::before': {
             content: '""',
             position: 'absolute',
-            right: 0,
+            left: 0,
             top: 0,
             bottom: 0,
             width: '4px',
-            background: 'linear-gradient(90deg, rgba(0,0,0,0.1) 0%, transparent 100%)',
-            pointerEvents: 'none',
+            background: 'linear-gradient(90deg, rgba(0,0,0,0.12) 0%, transparent 100%)',
           },
           '&:hover': {
-            width: '150px',
+            width: '112px',
             boxShadow: state.resumeOpen
-              ? '-4px 3px 12px rgba(251, 191, 36, 0.5)'
-              : '-3px 2px 10px rgba(245, 158, 11, 0.4)',
+              ? '4px 3px 14px rgba(251, 191, 36, 0.6)'
+              : '3px 3px 12px rgba(245, 158, 11, 0.5)',
           },
         }}
       >
@@ -166,10 +175,11 @@ export function BinderTabs() {
           sx={{
             color: 'white',
             fontWeight: 600,
-            fontSize: '0.75rem',
+            fontSize: '0.72rem',
             textTransform: 'lowercase',
             userSelect: 'none',
-            letterSpacing: '0.02em',
+            letterSpacing: '0.03em',
+            textShadow: '0 1px 2px rgba(0,0,0,0.25)',
           }}
         >
           resume

@@ -9,6 +9,7 @@ import CloseIcon from '@mui/icons-material/Close'
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft'
 import ChevronRightIcon from '@mui/icons-material/ChevronRight'
 import type { GalleryData } from '../../data/portfolio-content'
+import { getYouTubeEmbedUrl } from '@/lib/youtube'
 
 interface GalleryCarouselPageProps {
   title: string
@@ -110,19 +111,19 @@ export function GalleryCarouselPage({
             }}
           >
             {item.type === 'video' ? (
-              <video
-                controls
-                autoPlay
-                loop
-                preload="auto"
-                style={{
-                  maxWidth: '100%',
-                  maxHeight: '100%',
-                  objectFit: 'contain',
+              <Box
+                component="iframe"
+                src={getYouTubeEmbedUrl(item.src) ?? undefined}
+                title={item.title}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                sx={{
+                  width: '100%',
+                  height: '100%',
+                  border: 'none',
+                  aspectRatio: '16/9',
                 }}
-              >
-                <source src={item.src} type="video/mp4" />
-              </video>
+              />
             ) : (
               <Box
                 sx={{

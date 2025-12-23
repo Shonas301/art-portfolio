@@ -34,7 +34,7 @@ const galleryItems: GalleryItem[] = [
     description: 'Lorem ipsum dolor sit amet.',
     longDescription: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
     type: 'video',
-    src: '/output/web_optimized.mp4',
+    src: 'https://www.youtube.com/watch?v=bdrST1IbN3k',
     thumbnail: '/output/frames/720p_s69_frame_0002.png',
   },
   {

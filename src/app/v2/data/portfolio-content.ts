@@ -1,7 +1,10 @@
 import type { GalleryItem } from '@/types/gallery'
 
+// flipbook physical model
+export const TOTAL_PAGES = 50
+
 // page content types
-export type PageType = 'landing' | 'intro' | 'gallery' | 'code' | 'contact'
+export type PageType = 'landing' | 'intro' | 'gallery' | 'code' | 'contact' | 'blank'
 
 export interface PageContent {
   id: string
@@ -9,6 +12,33 @@ export interface PageContent {
   title: string
   section: string // for binder tabs
   data?: LandingData | IntroData | GalleryData | CodeData | ContactData
+}
+
+// sections mapped to physical pages (spread across the 50-page book)
+export interface SectionMapping {
+  id: string
+  section: string
+  physicalPage: number
+}
+
+export const sectionMappings: SectionMapping[] = [
+  { id: 'landing', section: 'home', physicalPage: 0 },
+  { id: 'intro', section: 'intro', physicalPage: 7 },
+  { id: '3d-work', section: '3d work', physicalPage: 14 },
+  { id: '2d-work', section: '2d work', physicalPage: 22 },
+  { id: 'code', section: 'code', physicalPage: 30 },
+  { id: 'pandy-series', section: 'pandy', physicalPage: 38 },
+  { id: 'contact', section: 'contact', physicalPage: 46 },
+]
+
+// helper to get physical page for a section
+export function getPhysicalPageForSection(sectionId: string): number {
+  return sectionMappings.find(s => s.id === sectionId)?.physicalPage ?? 0
+}
+
+// helper to get section at a physical page (or null if blank page)
+export function getSectionAtPage(physicalPage: number): SectionMapping | null {
+  return sectionMappings.find(s => s.physicalPage === physicalPage) ?? null
 }
 
 export interface LandingData {
@@ -80,7 +110,7 @@ export const pageContent: PageContent[] = [
           description: 'character animation showcase',
           longDescription: 'a comprehensive demonstration of character rigging and animation techniques in autodesk maya.',
           type: 'video',
-          src: '/output/web_optimized.mp4',
+          src: 'https://www.youtube.com/watch?v=bdrST1IbN3k',
           thumbnail: '/output/frames/720p_s69_frame_0000.png',
         },
         {
@@ -145,14 +175,14 @@ export const pageContent: PageContent[] = [
           id: 1,
           title: 'procedural animation system',
           description: 'custom animation pipeline built in python for maya',
-          videoSrc: '/output/web_optimized.mp4',
+          videoSrc: 'https://www.youtube.com/watch?v=bdrST1IbN3k',
           technologies: ['python', 'maya', 'pymel'],
         },
         {
           id: 2,
           title: 'rendering optimization tool',
           description: 'batch rendering utility for improved workflow',
-          videoSrc: '/output/web_optimized.mp4',
+          videoSrc: 'https://www.youtube.com/watch?v=bdrST1IbN3k',
           technologies: ['python', 'arnold', 'maya'],
         },
       ],
@@ -172,7 +202,7 @@ export const pageContent: PageContent[] = [
           description: 'pandy character exploration',
           longDescription: 'first animation in the pandy series, exploring character personality and movement.',
           type: 'video',
-          src: '/output/web_optimized.mp4',
+          src: 'https://www.youtube.com/watch?v=bdrST1IbN3k',
           thumbnail: '/output/frames/720p_s69_frame_0000.png',
         },
         {
@@ -181,7 +211,7 @@ export const pageContent: PageContent[] = [
           description: 'pandy in action',
           longDescription: 'continued adventures of pandy with more complex animation sequences.',
           type: 'video',
-          src: '/output/web_optimized.mp4',
+          src: 'https://www.youtube.com/watch?v=bdrST1IbN3k',
           thumbnail: '/output/frames/720p_s69_frame_0050.png',
         },
       ],

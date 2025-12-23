@@ -12,17 +12,17 @@ export const metadata: Metadata = {
 const videoContent = [
   {
     id: 1,
-    src: '/output/web_optimized.mp4',
+    src: 'https://www.youtube.com/embed/bdrST1IbN3k',
     description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
   },
   {
     id: 2,
-    src: '/output/web_optimized.mp4',
+    src: 'https://www.youtube.com/embed/bdrST1IbN3k',
     description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
   },
   {
     id: 3,
-    src: '/output/web_optimized.mp4',
+    src: 'https://www.youtube.com/embed/bdrST1IbN3k',
     description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
   },
 ]
@@ -63,17 +63,17 @@ export default function PandySeries() {
                     }}
                   >
                     <Box
-                      component="video"
-                      controls
+                      component="iframe"
+                      src={item.src}
+                      title={`Pandy Series Episode ${item.id}`}
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
                       sx={{
                         width: '100%',
                         height: '100%',
-                        objectFit: 'cover',
+                        border: 'none',
                       }}
-                      src={item.src}
-                    >
-                      Your browser does not support the video tag.
-                    </Box>
+                    />
                   </Box>
                 </Box>
                 <Box sx={{ flex: 1 }}>

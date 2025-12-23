@@ -7,6 +7,7 @@ import Card from '@mui/joy/Card'
 import CardContent from '@mui/joy/CardContent'
 import Chip from '@mui/joy/Chip'
 import type { CodeData } from '../../data/portfolio-content'
+import { getYouTubeEmbedUrl } from '@/lib/youtube'
 
 interface CodePageProps {
   title: string
@@ -59,16 +60,18 @@ export function CodePage({ title, data }: CodePageProps) {
                   overflow: 'hidden',
                 }}
               >
-                <video
-                  controls
-                  style={{
+                <Box
+                  component="iframe"
+                  src={getYouTubeEmbedUrl(project.videoSrc) ?? undefined}
+                  title={project.title}
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  sx={{
                     width: '100%',
                     height: '100%',
-                    objectFit: 'cover',
+                    border: 'none',
                   }}
-                >
-                  <source src={project.videoSrc} type="video/mp4" />
-                </video>
+                />
               </Box>
 
               <CardContent sx={{ flex: 1, justifyContent: 'center' }}>

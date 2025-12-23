@@ -1,24 +1,39 @@
 'use client'
 
 import { createContext, useContext, useReducer, useEffect, ReactNode, Dispatch } from 'react'
+import { TOTAL_PAGES } from '../data/portfolio-content'
 
-// state interface
 export interface FlipBookState {
   currentPageIndex: number
   isFlipping: boolean
   isRiffling: boolean
   targetPageIndex: number | null
-  viewMode: 'grid' | 'carousel' // for gallery pages
+  viewMode: 'grid' | 'carousel'
   resumeOpen: boolean
   prefersReducedMotion: boolean
   debugMode: boolean
+  scrollAccumulator: number
+  scrollVelocity: number
+  isEngaged: boolean
+  bendingPages: BendingPage[]
+  releasedPages: ReleasedPage[]
 }
 
-// action types
+export interface BendingPage {
+  pageIndex: number
+  bendAmount: number
+  zOffset: number
+}
+
+export interface ReleasedPage {
+  pageIndex: number
+  releaseTime: number
+  initialVelocity: number
+  direction: 'forward' | 'backward'
+}
+
 export type FlipBookAction =
   | { type: 'FLIP_TO_PAGE'; payload: number }
-  | { type: 'START_RIFFLE'; payload: number }
-  | { type: 'RIFFLE_STEP'; payload: number }
   | { type: 'FLIP_COMPLETE' }
   | { type: 'TOGGLE_VIEW_MODE' }
   | { type: 'SET_VIEW_MODE'; payload: 'grid' | 'carousel' }
@@ -26,8 +41,9 @@ export type FlipBookAction =
   | { type: 'CLOSE_RESUME' }
   | { type: 'TOGGLE_REDUCED_MOTION' }
   | { type: 'TOGGLE_DEBUG_MODE' }
-
-// initial state
+  | { type: 'TOUCH_INPUT'; delta: number; velocity: number }
+  | { type: 'TOUCH_END' }
+  | { type: 'PAGE_LANDED'; pageIndex: number }
 const initialState: FlipBookState = {
   currentPageIndex: 0,
   isFlipping: false,
@@ -37,71 +53,41 @@ const initialState: FlipBookState = {
   resumeOpen: false,
   prefersReducedMotion: false,
   debugMode: false,
+  scrollAccumulator: 0,
+  scrollVelocity: 0,
+  isEngaged: false,
+  bendingPages: [],
+  releasedPages: [],
 }
 
-// reducer function
 function flipBookReducer(state: FlipBookState, action: FlipBookAction): FlipBookState {
   switch (action.type) {
     case 'FLIP_TO_PAGE': {
       if (state.debugMode) console.log('Reducer: FLIP_TO_PAGE', action.payload)
 
-      // prevent concurrent flips
-      if (state.isFlipping || state.isRiffling) {
-        if (state.debugMode) console.log('Reducer: blocked - already flipping')
+      const targetPage = Math.max(0, Math.min(TOTAL_PAGES - 1, action.payload))
+
+      if (state.isFlipping || state.isRiffling || targetPage === state.currentPageIndex) {
+        if (state.debugMode) console.log('Reducer: blocked - already flipping or same page')
         return state
       }
 
-      // if reduced motion is enabled, jump immediately without animation
       if (state.prefersReducedMotion) {
         return {
           ...state,
-          currentPageIndex: action.payload,
+          currentPageIndex: targetPage,
         }
       }
 
-      // otherwise, animate the flip
-      const newState = {
+      return {
         ...state,
-        targetPageIndex: action.payload,
+        targetPageIndex: targetPage,
         isFlipping: true,
-        isRiffling: true, // use riffle for all page changes
+        isRiffling: true,
       }
-      if (state.debugMode) console.log('Reducer: new state', newState)
-      return newState
     }
 
-    case 'START_RIFFLE':
-      if (state.debugMode) console.log('Reducer: START_RIFFLE', action.payload)
-
-      // prevent concurrent flips
-      if (state.isFlipping || state.isRiffling) {
-        return state
-      }
-
-      // if reduced motion, jump immediately
-      if (state.prefersReducedMotion) {
-        return {
-          ...state,
-          currentPageIndex: action.payload,
-        }
-      }
-
-      return {
-        ...state,
-        targetPageIndex: action.payload,
-        isRiffling: true,
-        isFlipping: true,
-      }
-
-    case 'RIFFLE_STEP':
-      // intermediate riffle step - update current page
-      return {
-        ...state,
-        currentPageIndex: action.payload,
-      }
-
     case 'FLIP_COMPLETE': {
-      // complete the flip animation
       const newPageIndex = state.targetPageIndex ?? state.currentPageIndex
       return {
         ...state,
@@ -150,26 +136,124 @@ function flipBookReducer(state: FlipBookState, action: FlipBookAction): FlipBook
         debugMode: !state.debugMode,
       }
 
+    case 'TOUCH_INPUT': {
+      const { delta, velocity } = action
+
+      const normalizedDelta = delta / 100
+      let newAccumulator = Math.max(-100, Math.min(100, state.scrollAccumulator + normalizedDelta))
+
+      const direction = newAccumulator > 0 ? 'forward' : 'backward'
+      const absAccumulator = Math.abs(newAccumulator)
+
+      const bendingCount = Math.min(
+        Math.floor(absAccumulator / 15) + 1,
+        direction === 'forward'
+          ? TOTAL_PAGES - state.currentPageIndex - 1
+          : state.currentPageIndex
+      )
+
+      const bendingPages: BendingPage[] = []
+      for (let i = 0; i < bendingCount; i++) {
+        const pageIndex = direction === 'forward'
+          ? state.currentPageIndex + 1 + i
+          : state.currentPageIndex - 1 - i
+
+        const bendFalloff = Math.pow(0.7, i)
+        const bendAmount = Math.min(1, (absAccumulator / 50) * bendFalloff)
+
+        bendingPages.push({
+          pageIndex,
+          bendAmount,
+          zOffset: i * 2,
+        })
+      }
+
+      const releaseThreshold = 60
+      let releasedPages = [...state.releasedPages]
+      let currentPage = state.currentPageIndex
+
+      if (absAccumulator >= releaseThreshold && bendingPages.length > 0) {
+        const releasingPage = bendingPages[0]
+        releasedPages.push({
+          pageIndex: releasingPage.pageIndex,
+          releaseTime: performance.now(),
+          initialVelocity: Math.abs(velocity),
+          direction,
+        })
+
+        currentPage = direction === 'forward' ? currentPage + 1 : currentPage - 1
+        newAccumulator = direction === 'forward' ? newAccumulator - 40 : newAccumulator + 40
+        bendingPages.shift()
+      }
+
+      return {
+        ...state,
+        scrollAccumulator: newAccumulator,
+        scrollVelocity: velocity,
+        isEngaged: true,
+        bendingPages,
+        releasedPages,
+        currentPageIndex: currentPage,
+      }
+    }
+
+    case 'TOUCH_END': {
+      const absAccumulator = Math.abs(state.scrollAccumulator)
+
+      if (absAccumulator < 30) {
+        return {
+          ...state,
+          scrollAccumulator: 0,
+          scrollVelocity: 0,
+          isEngaged: false,
+          bendingPages: [],
+        }
+      }
+
+      const direction: 'forward' | 'backward' = state.scrollAccumulator > 0 ? 'forward' : 'backward'
+      const newReleasedPages: ReleasedPage[] = state.bendingPages.map((page, index) => ({
+        pageIndex: page.pageIndex,
+        releaseTime: performance.now() + index * 40,
+        initialVelocity: Math.abs(state.scrollVelocity) * 0.5,
+        direction,
+      }))
+
+      return {
+        ...state,
+        scrollAccumulator: 0,
+        scrollVelocity: 0,
+        isEngaged: false,
+        bendingPages: [],
+        releasedPages: [...state.releasedPages, ...newReleasedPages],
+      }
+    }
+
+    case 'PAGE_LANDED': {
+      const releasedPages = state.releasedPages.filter(
+        (page) => page.pageIndex !== action.pageIndex
+      )
+
+      return {
+        ...state,
+        releasedPages,
+      }
+    }
+
     default:
       return state
   }
 }
 
-// context interface
 interface FlipBookContextType {
   state: FlipBookState
   dispatch: Dispatch<FlipBookAction>
 }
 
-// create context
 const FlipBookContext = createContext<FlipBookContextType | undefined>(undefined)
 
-// provider component
 export function FlipBookProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(flipBookReducer, initialState)
 
-  // detect browser's reduced motion preference on mount
-  // this runs only once on client side
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
@@ -187,7 +271,6 @@ export function FlipBookProvider({ children }: { children: ReactNode }) {
   )
 }
 
-// custom hook for using context
 export function useFlipBook() {
   const context = useContext(FlipBookContext)
   if (context === undefined) {
