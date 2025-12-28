@@ -4,60 +4,87 @@ import { useEffect, useState, useCallback, useMemo } from 'react'
 import Box from '@mui/joy/Box'
 
 // number of vertical segments to create the curved effect
-const SEGMENT_COUNT = 10
+const SEGMENT_COUNT = 12
 // animation timing
-const TENSION_DURATION = 0.25 // seconds to build curve
-const FLIP_DURATION = 0.45 // seconds to complete flip
+const TENSION_DURATION = 0.3 // seconds to build curve
+const FLIP_DURATION = 0.5 // seconds to complete flip
 const TOTAL_DURATION = TENSION_DURATION + FLIP_DURATION
+
+// furl intensity - how much the page bows outward (in pixels)
+const MAX_FURL_DEPTH = 120 // increased from ~35px equivalent
 
 interface FurlingPageProps {
   direction: 'forward' | 'backward'
   onComplete: () => void
 }
 
-// calculate the bend amount for each segment to create a curve
-// segments near the free edge (right for forward, left for backward) bend more
-function getSegmentBendAngle(segmentIndex: number, direction: 'forward' | 'backward', progress: number): number {
+// calculate how much each segment bows toward the viewer (Z depth)
+// creates a horizontal curve with the middle bulging out most
+function getSegmentFurlDepth(segmentIndex: number, direction: 'forward' | 'backward', progress: number): number {
   const normalizedIndex = segmentIndex / (SEGMENT_COUNT - 1) // 0 to 1
 
-  // for forward flip, rightmost segments curve most
-  // for backward flip, leftmost segments curve most
-  const bendPosition = direction === 'forward' ? normalizedIndex : 1 - normalizedIndex
+  // for forward flip, the curve peaks more toward the right (free edge)
+  // for backward flip, peaks toward the left
+  const peakPosition = direction === 'forward' ? 0.65 : 0.35
 
-  // create a bell curve for the bend - peaks at the middle of tension phase
-  const tensionProgress = Math.min(progress / (TENSION_DURATION / TOTAL_DURATION), 1)
-  const releaseProgress = Math.max(0, (progress - TENSION_DURATION / TOTAL_DURATION) / (FLIP_DURATION / TOTAL_DURATION))
+  // bell curve centered at peak position - this creates the "bow" shape
+  const distanceFromPeak = Math.abs(normalizedIndex - peakPosition)
+  const curveFactor = Math.exp(-Math.pow(distanceFromPeak * 2.5, 2)) // gaussian curve
 
-  // bend increases during tension, then decreases during release
-  const tensionBend = Math.sin(tensionProgress * Math.PI) * 35 // max 35 degrees bend at peak
-  const releaseFade = 1 - releaseProgress
+  // tension builds then releases
+  const tensionPhase = TENSION_DURATION / TOTAL_DURATION
+  let furlIntensity: number
 
-  // the curve: segments at the free edge bend more
-  const curveFactor = Math.pow(bendPosition, 1.5) // power creates realistic curve falloff
+  if (progress < tensionPhase) {
+    // building tension - furl increases
+    furlIntensity = Math.sin((progress / tensionPhase) * Math.PI * 0.5) // ease in
+  } else {
+    // releasing - furl decreases as page flips
+    const releaseProgress = (progress - tensionPhase) / (1 - tensionPhase)
+    furlIntensity = Math.cos(releaseProgress * Math.PI * 0.5) // ease out
+  }
 
-  return tensionBend * curveFactor * releaseFade
+  return MAX_FURL_DEPTH * curveFactor * furlIntensity
 }
 
 // calculate the Y rotation (the main flip) for each segment
+// all segments rotate together for a uniform middle-out flip
 function getSegmentFlipAngle(segmentIndex: number, direction: 'forward' | 'backward', progress: number): number {
   const normalizedIndex = segmentIndex / (SEGMENT_COUNT - 1)
 
-  // flip doesn't start until tension phase is partially complete
-  const flipStart = 0.15
+  // flip starts after tension builds a bit
+  const flipStart = 0.2
   const flipProgress = Math.max(0, (progress - flipStart) / (1 - flipStart))
 
-  // all segments rotate, but outer ones lead slightly
-  const leadFactor = direction === 'forward' ? normalizedIndex : 1 - normalizedIndex
-  const segmentDelay = (1 - leadFactor) * 0.08 // inner segments lag by up to 8%
-  const adjustedProgress = Math.max(0, Math.min(1, flipProgress - segmentDelay) / (1 - segmentDelay))
+  // for middle-out: segments near center start first, edges follow
+  // this creates a wave-like unfurling from center
+  const centerDistance = Math.abs(normalizedIndex - 0.5) * 2 // 0 at center, 1 at edges
+  const segmentDelay = centerDistance * 0.12 // center leads by up to 12%
 
-  // ease the flip - starts slow, accelerates, slows at end
+  const adjustedProgress = Math.max(0, Math.min(1, (flipProgress - segmentDelay) / (1 - segmentDelay)))
+
+  // ease the flip
   const eased = easeInOutCubic(adjustedProgress)
 
   // full rotation is 180 degrees
   const targetAngle = direction === 'forward' ? -180 : 180
 
   return targetAngle * eased
+}
+
+// small tilt to enhance the curve appearance
+function getSegmentTilt(segmentIndex: number, direction: 'forward' | 'backward', furlDepth: number): number {
+  const normalizedIndex = segmentIndex / (SEGMENT_COUNT - 1)
+  const peakPosition = direction === 'forward' ? 0.65 : 0.35
+
+  // tilt based on position relative to the curve peak
+  // segments before peak tilt one way, after peak tilt the other
+  const tiltDirection = normalizedIndex < peakPosition ? 1 : -1
+
+  // tilt proportional to furl depth for natural curve appearance
+  const tiltAmount = (furlDepth / MAX_FURL_DEPTH) * 8 * tiltDirection
+
+  return tiltAmount
 }
 
 function easeInOutCubic(t: number): number {
@@ -105,34 +132,32 @@ export function FurlingPage({ direction, onComplete }: FurlingPageProps) {
   // memoize segment calculations
   const segments = useMemo(() => {
     return Array.from({ length: SEGMENT_COUNT }, (_, i) => {
-      const bendAngle = getSegmentBendAngle(i, direction, progress)
+      const furlDepth = getSegmentFurlDepth(i, direction, progress)
       const flipAngle = getSegmentFlipAngle(i, direction, progress)
+      const tiltAngle = getSegmentTilt(i, direction, furlDepth)
 
-      // combine bend (around X axis for vertical curve) and flip (around Y axis)
-      // the bend creates the "tension" curve, flip does the page turn
       return {
         index: i,
         left: `${i * segmentWidth}%`,
         width: `${segmentWidth + 0.5}%`, // slight overlap to prevent gaps
-        bendAngle,
+        furlDepth,
         flipAngle,
-        // depth offset to enhance 3d effect - curved parts come toward viewer
-        zOffset: Math.abs(bendAngle) * 0.3,
+        tiltAngle,
       }
     })
   }, [progress, direction, segmentWidth])
 
-  // calculate dynamic shadow based on current bend state
-  const maxBend = Math.max(...segments.map(s => Math.abs(s.bendAngle)))
-  const shadowIntensity = 0.3 + (maxBend / 35) * 0.2
+  // calculate dynamic shadow based on current furl state
+  const maxFurl = Math.max(...segments.map(s => s.furlDepth))
+  const shadowIntensity = 0.25 + (maxFurl / MAX_FURL_DEPTH) * 0.25
 
   return (
     <Box
       sx={{
         position: 'absolute',
         inset: 0,
-        perspective: '1200px',
-        perspectiveOrigin: 'left center',
+        perspective: '1500px',
+        perspectiveOrigin: 'center center',
         pointerEvents: 'none',
         zIndex: 9999,
       }}
@@ -159,11 +184,11 @@ export function FurlingPage({ direction, onComplete }: FurlingPageProps) {
               transformStyle: 'preserve-3d',
               // each segment's transform origin is at its left edge for proper hinging
               transformOrigin: 'left center',
-              // combine rotations: Y for page flip, X for vertical curve bend
+              // combine: Y rotation for flip, Z translation for furl depth, X rotation for tilt
               transform: `
                 rotateY(${segment.flipAngle}deg)
-                rotateX(${segment.bendAngle}deg)
-                translateZ(${segment.zOffset}px)
+                translateZ(${segment.furlDepth}px)
+                rotateX(${segment.tiltAngle}deg)
               `,
               backfaceVisibility: 'hidden',
               willChange: 'transform',
@@ -180,19 +205,20 @@ export function FurlingPage({ direction, onComplete }: FurlingPageProps) {
                   linear-gradient(rgba(0,0,0,0.015) 1px, transparent 1px)
                 `,
                 backgroundSize: '20px 20px',
-                boxShadow: segment.index === SEGMENT_COUNT - 1
-                  ? `0 0 20px rgba(0,0,0,${shadowIntensity})`
+                // shadow on the furled part
+                boxShadow: segment.furlDepth > 20
+                  ? `0 ${segment.furlDepth * 0.15}px ${segment.furlDepth * 0.4}px rgba(0,0,0,${0.15 + segment.furlDepth * 0.002})`
                   : 'none',
-                // slight gradient to show depth on curved areas
+                // gradient to show depth on curved areas
                 '&::after': {
                   content: '""',
                   position: 'absolute',
                   inset: 0,
                   background: `linear-gradient(
                     90deg,
-                    rgba(0,0,0,${Math.abs(segment.bendAngle) * 0.002}) 0%,
-                    transparent 50%,
-                    rgba(255,255,255,${Math.abs(segment.bendAngle) * 0.003}) 100%
+                    rgba(0,0,0,${segment.furlDepth * 0.001}) 0%,
+                    rgba(255,255,255,${segment.furlDepth * 0.002}) 50%,
+                    rgba(0,0,0,${segment.furlDepth * 0.0005}) 100%
                   )`,
                   pointerEvents: 'none',
                 },
@@ -208,18 +234,35 @@ export function FurlingPage({ direction, onComplete }: FurlingPageProps) {
           position: 'absolute',
           left: -10,
           top: '5%',
-          width: '20px',
+          width: '25px',
           height: '90%',
           background: `linear-gradient(90deg,
             transparent 0%,
-            rgba(0,0,0,${shadowIntensity * 0.5}) 50%,
+            rgba(0,0,0,${shadowIntensity * 0.6}) 50%,
             transparent 100%
           )`,
-          filter: 'blur(8px)',
+          filter: 'blur(10px)',
           pointerEvents: 'none',
           opacity: progress < 0.8 ? 1 : 1 - (progress - 0.8) / 0.2,
         }}
       />
+
+      {/* bottom shadow for depth when furled */}
+      {maxFurl > 30 && (
+        <Box
+          sx={{
+            position: 'absolute',
+            left: '10%',
+            right: '10%',
+            bottom: -20,
+            height: '40px',
+            background: `radial-gradient(ellipse at center, rgba(0,0,0,${maxFurl * 0.003}) 0%, transparent 70%)`,
+            filter: 'blur(15px)',
+            pointerEvents: 'none',
+            transform: `translateY(${maxFurl * 0.2}px)`,
+          }}
+        />
+      )}
     </Box>
   )
 }
