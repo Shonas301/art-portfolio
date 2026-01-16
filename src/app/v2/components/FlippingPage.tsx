@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback } from 'react'
+import { useCallback, useEffect } from 'react'
 import Box from '@mui/joy/Box'
 import { useFlipBook } from '../context/FlipBookContext'
 import { FurlingPage } from './FurlingPage'
@@ -13,7 +13,22 @@ export function FlippingPage() {
     dispatch({ type: 'FLIP_COMPLETE' })
   }, [dispatch])
 
+  // handle reduced motion preference - complete flip instantly via effect
+  useEffect(() => {
+    if (state.prefersReducedMotion && state.isFlipping && state.targetPageIndex !== null) {
+      const timer = setTimeout(() => {
+        dispatch({ type: 'FLIP_COMPLETE' })
+      }, 50)
+      return () => clearTimeout(timer)
+    }
+  }, [state.prefersReducedMotion, state.isFlipping, state.targetPageIndex, dispatch])
+
   if (!state.isFlipping || state.targetPageIndex === null) {
+    return null
+  }
+
+  // reduced motion users get instant transition (handled by effect above)
+  if (state.prefersReducedMotion) {
     return null
   }
 
@@ -21,13 +36,6 @@ export function FlippingPage() {
   const target = state.targetPageIndex
   const pageCount = Math.abs(target - current)
   const direction = target > current ? 'forward' : 'backward'
-
-  // use reduced motion fallback if enabled
-  if (state.prefersReducedMotion) {
-    // instant transition for reduced motion
-    setTimeout(() => dispatch({ type: 'FLIP_COMPLETE' }), 50)
-    return null
-  }
 
   // single page flip uses furling animation
   if (pageCount === 1) {

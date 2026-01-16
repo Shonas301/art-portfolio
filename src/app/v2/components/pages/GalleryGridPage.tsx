@@ -8,6 +8,7 @@ import IconButton from '@mui/joy/IconButton'
 import GridViewIcon from '@mui/icons-material/GridView'
 import ViewCarouselIcon from '@mui/icons-material/ViewCarousel'
 import { GalleryGrid } from '@/components/GalleryGrid'
+import { ArtworkDetailModal } from '@/components/ArtworkDetailModal'
 import type { GalleryData } from '../../data/portfolio-content'
 import { useFlipBook } from '../../context/FlipBookContext'
 import { GalleryCarouselPage } from './GalleryCarouselPage'
@@ -20,6 +21,7 @@ interface GalleryGridPageProps {
 export function GalleryGridPage({ title, data }: GalleryGridPageProps) {
   const { state, dispatch } = useFlipBook()
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null)
+  const [detailModalIndex, setDetailModalIndex] = useState<number | null>(null)
   const scrollContainerRef = useRef<HTMLDivElement>(null)
 
   // calculate which item is at the top of the visible area
@@ -85,6 +87,27 @@ export function GalleryGridPage({ title, data }: GalleryGridPageProps) {
     }
   }
 
+  // detail modal handlers
+  const handleOpenDetail = (index: number) => {
+    setDetailModalIndex(index)
+  }
+
+  const handleCloseDetail = () => {
+    setDetailModalIndex(null)
+  }
+
+  const handleDetailPrevious = () => {
+    if (detailModalIndex !== null) {
+      setDetailModalIndex((detailModalIndex - 1 + data.items.length) % data.items.length)
+    }
+  }
+
+  const handleDetailNext = () => {
+    if (detailModalIndex !== null) {
+      setDetailModalIndex((detailModalIndex + 1) % data.items.length)
+    }
+  }
+
   // show carousel view if in carousel mode
   if (state.viewMode === 'carousel' && selectedIndex !== null) {
     return (
@@ -141,8 +164,21 @@ export function GalleryGridPage({ title, data }: GalleryGridPageProps) {
       </Typography>
 
       <Box ref={scrollContainerRef} sx={{ flex: 1, overflow: 'auto' }}>
-        <GalleryGrid items={data.items} onItemClick={handleItemClick} />
+        <GalleryGrid items={data.items} onItemClick={handleItemClick} onInfoClick={handleOpenDetail} />
       </Box>
+
+      {/* artwork detail modal */}
+      {detailModalIndex !== null && (
+        <ArtworkDetailModal
+          item={data.items[detailModalIndex]}
+          isOpen={detailModalIndex !== null}
+          onClose={handleCloseDetail}
+          onPrevious={handleDetailPrevious}
+          onNext={handleDetailNext}
+          currentIndex={detailModalIndex}
+          totalItems={data.items.length}
+        />
+      )}
     </Stack>
   )
 }

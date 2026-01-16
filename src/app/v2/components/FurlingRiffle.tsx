@@ -2,14 +2,16 @@
 
 import { useEffect, useState, useCallback, useMemo } from 'react'
 import Box from '@mui/joy/Box'
+import {
+  RIFFLE_CONFIG,
+  calculateSegmentTransforms,
+} from '../utils/furling-utils'
 
 // timing constants
 const BASE_DURATION_PER_PAGE = 0.06 // seconds per page in riffle
 const MIN_TOTAL_DURATION = 0.6
 const MAX_TOTAL_DURATION = 1.4
 const STAGGER_DELAY = 0.04 // delay between each page starting
-const SEGMENT_COUNT = 10 // segments per page for curve effect
-const MAX_FURL_DEPTH = 90 // slightly less than single page for performance
 
 interface FurlingRiffleProps {
   pageCount: number
@@ -26,75 +28,6 @@ function getLayerCount(pageCount: number): number {
   return 7
 }
 
-function easeInOutCubic(t: number): number {
-  return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2
-}
-
-// calculate furl depth - how much each segment bows toward viewer
-function getSegmentFurlDepth(
-  segmentIndex: number,
-  direction: 'forward' | 'backward',
-  pageProgress: number
-): number {
-  const normalizedIndex = segmentIndex / (SEGMENT_COUNT - 1)
-
-  // curve peaks toward the free edge
-  const peakPosition = direction === 'forward' ? 0.6 : 0.4
-
-  // gaussian curve for bow shape
-  const distanceFromPeak = Math.abs(normalizedIndex - peakPosition)
-  const curveFactor = Math.exp(-Math.pow(distanceFromPeak * 2.5, 2))
-
-  // tension builds then releases
-  const tensionPhase = 0.35
-  let furlIntensity: number
-
-  if (pageProgress < tensionPhase) {
-    furlIntensity = Math.sin((pageProgress / tensionPhase) * Math.PI * 0.5)
-  } else {
-    const releaseProgress = (pageProgress - tensionPhase) / (1 - tensionPhase)
-    furlIntensity = Math.cos(releaseProgress * Math.PI * 0.5)
-  }
-
-  return MAX_FURL_DEPTH * curveFactor * furlIntensity
-}
-
-// calculate flip rotation for a segment - middle leads
-function getSegmentFlip(
-  segmentIndex: number,
-  direction: 'forward' | 'backward',
-  pageProgress: number
-): number {
-  const normalizedIndex = segmentIndex / (SEGMENT_COUNT - 1)
-
-  // flip starts after tension builds
-  const flipStart = 0.15
-  const flipProgress = Math.max(0, (pageProgress - flipStart) / (1 - flipStart))
-
-  // middle segments lead, edges follow
-  const centerDistance = Math.abs(normalizedIndex - 0.5) * 2
-  const segmentDelay = centerDistance * 0.1
-
-  const adjustedProgress = Math.max(0, Math.min(1, (flipProgress - segmentDelay) / (1 - segmentDelay)))
-  const eased = easeInOutCubic(adjustedProgress)
-
-  const targetAngle = direction === 'forward' ? -180 : 180
-  return targetAngle * eased
-}
-
-// small tilt for curve appearance
-function getSegmentTilt(
-  segmentIndex: number,
-  direction: 'forward' | 'backward',
-  furlDepth: number
-): number {
-  const normalizedIndex = segmentIndex / (SEGMENT_COUNT - 1)
-  const peakPosition = direction === 'forward' ? 0.6 : 0.4
-  const tiltDirection = normalizedIndex < peakPosition ? 1 : -1
-
-  return (furlDepth / MAX_FURL_DEPTH) * 6 * tiltDirection
-}
-
 interface PageLayerProps {
   layerIndex: number
   totalLayers: number
@@ -103,26 +36,14 @@ interface PageLayerProps {
   opacity: number
 }
 
-function PageLayer({ layerIndex, totalLayers, direction, progress, opacity }: PageLayerProps) {
-  const segmentWidth = 100 / SEGMENT_COUNT
-
-  // memoize segment transforms
+function PageLayer({ totalLayers, direction, progress, opacity, layerIndex }: PageLayerProps) {
+  // memoize segment transforms using shared utility
   const segments = useMemo(() => {
-    return Array.from({ length: SEGMENT_COUNT }, (_, i) => {
-      const furlDepth = getSegmentFurlDepth(i, direction, progress)
-      const flipAngle = getSegmentFlip(i, direction, progress)
-      const tiltAngle = getSegmentTilt(i, direction, furlDepth)
+    return calculateSegmentTransforms(direction, progress, RIFFLE_CONFIG)
+  }, [progress, direction])
 
-      return {
-        index: i,
-        left: `${i * segmentWidth}%`,
-        width: `${segmentWidth + 0.3}%`,
-        furlDepth,
-        flipAngle,
-        tiltAngle,
-      }
-    })
-  }, [progress, direction, segmentWidth])
+  // calculate z-index based on layer position
+  const zIndex = 9999 + totalLayers - layerIndex
 
   return (
     <Box
@@ -132,7 +53,7 @@ function PageLayer({ layerIndex, totalLayers, direction, progress, opacity }: Pa
         transformStyle: 'preserve-3d',
         transformOrigin: 'left center',
         opacity: opacity,
-        zIndex: 9999 + totalLayers - layerIndex,
+        zIndex: zIndex,
         pointerEvents: 'none',
       }}
     >
@@ -147,11 +68,7 @@ function PageLayer({ layerIndex, totalLayers, direction, progress, opacity }: Pa
             height: '100%',
             transformStyle: 'preserve-3d',
             transformOrigin: 'left center',
-            transform: `
-              rotateY(${segment.flipAngle}deg)
-              translateZ(${segment.furlDepth}px)
-              rotateX(${segment.tiltAngle}deg)
-            `,
+            transform: `rotateY(${segment.flipAngle}deg) translateZ(${segment.furlDepth}px) rotateX(${segment.tiltAngle}deg)`,
             backfaceVisibility: 'hidden',
             willChange: 'transform',
           }}
@@ -173,18 +90,13 @@ function PageLayer({ layerIndex, totalLayers, direction, progress, opacity }: Pa
                 content: '""',
                 position: 'absolute',
                 inset: 0,
-                background: `linear-gradient(
-                  90deg,
-                  rgba(0,0,0,${segment.furlDepth * 0.001}) 0%,
-                  rgba(255,255,255,${segment.furlDepth * 0.0015}) 50%,
-                  rgba(0,0,0,${segment.furlDepth * 0.0005}) 100%
-                )`,
+                background: `linear-gradient(90deg, rgba(0,0,0,${segment.furlDepth * 0.001}) 0%, rgba(255,255,255,${segment.furlDepth * 0.0015}) 50%, rgba(0,0,0,${segment.furlDepth * 0.0005}) 100%)`,
                 pointerEvents: 'none',
               },
             }}
           >
             {/* faint content lines */}
-            {segment.index === Math.floor(SEGMENT_COUNT / 2) && (
+            {segment.index === Math.floor(RIFFLE_CONFIG.segmentCount / 2) && (
               <Box
                 sx={{
                   position: 'absolute',
@@ -230,7 +142,8 @@ export function FurlingRiffle({ pageCount, direction, onComplete }: FurlingRiffl
     return Math.max(MIN_TOTAL_DURATION, Math.min(MAX_TOTAL_DURATION, rawDuration))
   }, [pageCount, layerCount])
 
-  const handleComplete = useCallback(() => {
+  // use ref-like callback to avoid stale closure
+  const onCompleteRef = useCallback(() => {
     onComplete()
   }, [onComplete])
 
@@ -249,7 +162,7 @@ export function FurlingRiffle({ pageCount, direction, onComplete }: FurlingRiffl
       if (newProgress < 1) {
         animationFrame = requestAnimationFrame(animate)
       } else {
-        handleComplete()
+        onCompleteRef()
       }
     }
 
@@ -260,7 +173,7 @@ export function FurlingRiffle({ pageCount, direction, onComplete }: FurlingRiffl
         cancelAnimationFrame(animationFrame)
       }
     }
-  }, [totalDuration, handleComplete])
+  }, [totalDuration, onCompleteRef])
 
   // calculate per-layer progress and opacity
   const layers = useMemo(() => {
@@ -317,11 +230,7 @@ export function FurlingRiffle({ pageCount, direction, onComplete }: FurlingRiffl
           top: '8%',
           width: '16px',
           height: '84%',
-          background: `linear-gradient(90deg,
-            transparent 0%,
-            rgba(0,0,0,0.25) 50%,
-            transparent 100%
-          )`,
+          background: 'linear-gradient(90deg, transparent 0%, rgba(0,0,0,0.25) 50%, transparent 100%)',
           filter: 'blur(6px)',
           pointerEvents: 'none',
           opacity: globalProgress < 0.85 ? 1 : 1 - (globalProgress - 0.85) / 0.15,

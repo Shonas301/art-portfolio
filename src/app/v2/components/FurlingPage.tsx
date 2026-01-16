@@ -2,102 +2,26 @@
 
 import { useEffect, useState, useCallback, useMemo } from 'react'
 import Box from '@mui/joy/Box'
+import {
+  SINGLE_PAGE_CONFIG,
+  calculateSegmentTransforms,
+} from '../utils/furling-utils'
 
-// number of vertical segments to create the curved effect
-const SEGMENT_COUNT = 12
 // animation timing
 const TENSION_DURATION = 0.3 // seconds to build curve
 const FLIP_DURATION = 0.5 // seconds to complete flip
 const TOTAL_DURATION = TENSION_DURATION + FLIP_DURATION
-
-// furl intensity - how much the page bows outward (in pixels)
-const MAX_FURL_DEPTH = 120 // increased from ~35px equivalent
 
 interface FurlingPageProps {
   direction: 'forward' | 'backward'
   onComplete: () => void
 }
 
-// calculate how much each segment bows toward the viewer (Z depth)
-// creates a horizontal curve with the middle bulging out most
-function getSegmentFurlDepth(segmentIndex: number, direction: 'forward' | 'backward', progress: number): number {
-  const normalizedIndex = segmentIndex / (SEGMENT_COUNT - 1) // 0 to 1
-
-  // for forward flip, the curve peaks more toward the right (free edge)
-  // for backward flip, peaks toward the left
-  const peakPosition = direction === 'forward' ? 0.65 : 0.35
-
-  // bell curve centered at peak position - this creates the "bow" shape
-  const distanceFromPeak = Math.abs(normalizedIndex - peakPosition)
-  const curveFactor = Math.exp(-Math.pow(distanceFromPeak * 2.5, 2)) // gaussian curve
-
-  // tension builds then releases
-  const tensionPhase = TENSION_DURATION / TOTAL_DURATION
-  let furlIntensity: number
-
-  if (progress < tensionPhase) {
-    // building tension - furl increases
-    furlIntensity = Math.sin((progress / tensionPhase) * Math.PI * 0.5) // ease in
-  } else {
-    // releasing - furl decreases as page flips
-    const releaseProgress = (progress - tensionPhase) / (1 - tensionPhase)
-    furlIntensity = Math.cos(releaseProgress * Math.PI * 0.5) // ease out
-  }
-
-  return MAX_FURL_DEPTH * curveFactor * furlIntensity
-}
-
-// calculate the Y rotation (the main flip) for each segment
-// all segments rotate together for a uniform middle-out flip
-function getSegmentFlipAngle(segmentIndex: number, direction: 'forward' | 'backward', progress: number): number {
-  const normalizedIndex = segmentIndex / (SEGMENT_COUNT - 1)
-
-  // flip starts after tension builds a bit
-  const flipStart = 0.2
-  const flipProgress = Math.max(0, (progress - flipStart) / (1 - flipStart))
-
-  // for middle-out: segments near center start first, edges follow
-  // this creates a wave-like unfurling from center
-  const centerDistance = Math.abs(normalizedIndex - 0.5) * 2 // 0 at center, 1 at edges
-  const segmentDelay = centerDistance * 0.12 // center leads by up to 12%
-
-  const adjustedProgress = Math.max(0, Math.min(1, (flipProgress - segmentDelay) / (1 - segmentDelay)))
-
-  // ease the flip
-  const eased = easeInOutCubic(adjustedProgress)
-
-  // full rotation is 180 degrees
-  const targetAngle = direction === 'forward' ? -180 : 180
-
-  return targetAngle * eased
-}
-
-// small tilt to enhance the curve appearance
-function getSegmentTilt(segmentIndex: number, direction: 'forward' | 'backward', furlDepth: number): number {
-  const normalizedIndex = segmentIndex / (SEGMENT_COUNT - 1)
-  const peakPosition = direction === 'forward' ? 0.65 : 0.35
-
-  // tilt based on position relative to the curve peak
-  // segments before peak tilt one way, after peak tilt the other
-  const tiltDirection = normalizedIndex < peakPosition ? 1 : -1
-
-  // tilt proportional to furl depth for natural curve appearance
-  const tiltAmount = (furlDepth / MAX_FURL_DEPTH) * 8 * tiltDirection
-
-  return tiltAmount
-}
-
-function easeInOutCubic(t: number): number {
-  return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2
-}
-
 export function FurlingPage({ direction, onComplete }: FurlingPageProps) {
   const [progress, setProgress] = useState(0)
 
-  // segment widths - each segment is an equal slice
-  const segmentWidth = 100 / SEGMENT_COUNT
-
-  const handleComplete = useCallback(() => {
+  // use ref to avoid stale closure in animation loop
+  const onCompleteRef = useCallback(() => {
     onComplete()
   }, [onComplete])
 
@@ -116,7 +40,7 @@ export function FurlingPage({ direction, onComplete }: FurlingPageProps) {
       if (newProgress < 1) {
         animationFrame = requestAnimationFrame(animate)
       } else {
-        handleComplete()
+        onCompleteRef()
       }
     }
 
@@ -127,29 +51,16 @@ export function FurlingPage({ direction, onComplete }: FurlingPageProps) {
         cancelAnimationFrame(animationFrame)
       }
     }
-  }, [handleComplete])
+  }, [onCompleteRef])
 
-  // memoize segment calculations
+  // memoize segment calculations using shared utility
   const segments = useMemo(() => {
-    return Array.from({ length: SEGMENT_COUNT }, (_, i) => {
-      const furlDepth = getSegmentFurlDepth(i, direction, progress)
-      const flipAngle = getSegmentFlipAngle(i, direction, progress)
-      const tiltAngle = getSegmentTilt(i, direction, furlDepth)
-
-      return {
-        index: i,
-        left: `${i * segmentWidth}%`,
-        width: `${segmentWidth + 0.5}%`, // slight overlap to prevent gaps
-        furlDepth,
-        flipAngle,
-        tiltAngle,
-      }
-    })
-  }, [progress, direction, segmentWidth])
+    return calculateSegmentTransforms(direction, progress, SINGLE_PAGE_CONFIG)
+  }, [progress, direction])
 
   // calculate dynamic shadow based on current furl state
   const maxFurl = Math.max(...segments.map(s => s.furlDepth))
-  const shadowIntensity = 0.25 + (maxFurl / MAX_FURL_DEPTH) * 0.25
+  const shadowIntensity = 0.25 + (maxFurl / SINGLE_PAGE_CONFIG.maxFurlDepth) * 0.25
 
   return (
     <Box
@@ -185,11 +96,7 @@ export function FurlingPage({ direction, onComplete }: FurlingPageProps) {
               // each segment's transform origin is at its left edge for proper hinging
               transformOrigin: 'left center',
               // combine: Y rotation for flip, Z translation for furl depth, X rotation for tilt
-              transform: `
-                rotateY(${segment.flipAngle}deg)
-                translateZ(${segment.furlDepth}px)
-                rotateX(${segment.tiltAngle}deg)
-              `,
+              transform: `rotateY(${segment.flipAngle}deg) translateZ(${segment.furlDepth}px) rotateX(${segment.tiltAngle}deg)`,
               backfaceVisibility: 'hidden',
               willChange: 'transform',
             }}
@@ -214,12 +121,7 @@ export function FurlingPage({ direction, onComplete }: FurlingPageProps) {
                   content: '""',
                   position: 'absolute',
                   inset: 0,
-                  background: `linear-gradient(
-                    90deg,
-                    rgba(0,0,0,${segment.furlDepth * 0.001}) 0%,
-                    rgba(255,255,255,${segment.furlDepth * 0.002}) 50%,
-                    rgba(0,0,0,${segment.furlDepth * 0.0005}) 100%
-                  )`,
+                  background: `linear-gradient(90deg, rgba(0,0,0,${segment.furlDepth * 0.001}) 0%, rgba(255,255,255,${segment.furlDepth * 0.002}) 50%, rgba(0,0,0,${segment.furlDepth * 0.0005}) 100%)`,
                   pointerEvents: 'none',
                 },
               }}
@@ -236,11 +138,7 @@ export function FurlingPage({ direction, onComplete }: FurlingPageProps) {
           top: '5%',
           width: '25px',
           height: '90%',
-          background: `linear-gradient(90deg,
-            transparent 0%,
-            rgba(0,0,0,${shadowIntensity * 0.6}) 50%,
-            transparent 100%
-          )`,
+          background: `linear-gradient(90deg, transparent 0%, rgba(0,0,0,${shadowIntensity * 0.6}) 50%, transparent 100%)`,
           filter: 'blur(10px)',
           pointerEvents: 'none',
           opacity: progress < 0.8 ? 1 : 1 - (progress - 0.8) / 0.2,

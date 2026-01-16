@@ -17,6 +17,9 @@ export interface FlipBookState {
   isEngaged: boolean
   bendingPages: BendingPage[]
   releasedPages: ReleasedPage[]
+  isBookFlipped: boolean
+  isBookFlipping: boolean
+  adminAuthenticated: boolean
 }
 
 export interface BendingPage {
@@ -44,6 +47,11 @@ export type FlipBookAction =
   | { type: 'TOUCH_INPUT'; delta: number; velocity: number }
   | { type: 'TOUCH_END' }
   | { type: 'PAGE_LANDED'; pageIndex: number }
+  | { type: 'FLIP_BOOK_OVER' }
+  | { type: 'FLIP_BOOK_BACK' }
+  | { type: 'BOOK_FLIP_COMPLETE' }
+  | { type: 'ADMIN_LOGIN' }
+  | { type: 'ADMIN_LOGOUT' }
 const initialState: FlipBookState = {
   currentPageIndex: 0,
   isFlipping: false,
@@ -58,6 +66,9 @@ const initialState: FlipBookState = {
   isEngaged: false,
   bendingPages: [],
   releasedPages: [],
+  isBookFlipped: false,
+  isBookFlipping: false,
+  adminAuthenticated: false,
 }
 
 function flipBookReducer(state: FlipBookState, action: FlipBookAction): FlipBookState {
@@ -123,14 +134,12 @@ function flipBookReducer(state: FlipBookState, action: FlipBookAction): FlipBook
       }
 
     case 'TOGGLE_REDUCED_MOTION':
-      console.log('Toggling reduced motion:', !state.prefersReducedMotion)
       return {
         ...state,
         prefersReducedMotion: !state.prefersReducedMotion,
       }
 
     case 'TOGGLE_DEBUG_MODE':
-      console.log('Toggling debug mode:', !state.debugMode)
       return {
         ...state,
         debugMode: !state.debugMode,
@@ -236,6 +245,45 @@ function flipBookReducer(state: FlipBookState, action: FlipBookAction): FlipBook
       return {
         ...state,
         releasedPages,
+      }
+    }
+
+    case 'FLIP_BOOK_OVER': {
+      if (state.isBookFlipping) return state
+      return {
+        ...state,
+        isBookFlipping: true,
+      }
+    }
+
+    case 'FLIP_BOOK_BACK': {
+      if (state.isBookFlipping) return state
+      return {
+        ...state,
+        isBookFlipping: true,
+      }
+    }
+
+    case 'BOOK_FLIP_COMPLETE': {
+      return {
+        ...state,
+        isBookFlipped: !state.isBookFlipped,
+        isBookFlipping: false,
+      }
+    }
+
+    case 'ADMIN_LOGIN': {
+      return {
+        ...state,
+        adminAuthenticated: true,
+      }
+    }
+
+    case 'ADMIN_LOGOUT': {
+      return {
+        ...state,
+        adminAuthenticated: false,
+        isBookFlipped: false,
       }
     }
 

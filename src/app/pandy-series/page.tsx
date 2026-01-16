@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation'
 
 export default function PandySeriesPage() {
-  redirect('/v1/pandy-series')
+  redirect('/v2#pandy-series')
 }

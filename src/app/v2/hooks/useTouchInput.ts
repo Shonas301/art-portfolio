@@ -1,8 +1,58 @@
 import { useEffect, useRef, type RefObject } from 'react'
 import { useFlipBook } from '../context/FlipBookContext'
+import { TOTAL_PAGES } from '../data/portfolio-content'
 
 // minimum horizontal distance to consider a swipe for page navigation
 const HORIZONTAL_SWIPE_THRESHOLD = 30
+// debounce time for wheel events (ms)
+const WHEEL_DEBOUNCE_MS = 150
+
+// check if an element or its ancestors have scrollable overflow
+// defined outside hook to avoid recreation on each render
+function isOnScrollableContent(target: EventTarget | null, container: HTMLElement): boolean {
+  if (!target || !(target instanceof Element)) return false
+
+  let element: Element | null = target
+  while (element && element !== container) {
+    const style = window.getComputedStyle(element)
+    const overflowY = style.overflowY
+    const overflowX = style.overflowX
+
+    // check if element has scrollable overflow
+    if (overflowY === 'auto' || overflowY === 'scroll') {
+      const el = element as HTMLElement
+      // check if content actually overflows
+      if (el.scrollHeight > el.clientHeight) {
+        return true
+      }
+    }
+    if (overflowX === 'auto' || overflowX === 'scroll') {
+      const el = element as HTMLElement
+      if (el.scrollWidth > el.clientWidth) {
+        return true
+      }
+    }
+
+    element = element.parentElement
+  }
+  return false
+}
+
+// find the nearest scrollable ancestor
+function findScrollableAncestor(target: Element, container: HTMLElement): HTMLElement | null {
+  let element: Element | null = target
+  while (element && element !== container) {
+    const style = window.getComputedStyle(element)
+    if (style.overflowY === 'auto' || style.overflowY === 'scroll') {
+      const el = element as HTMLElement
+      if (el.scrollHeight > el.clientHeight) {
+        return el
+      }
+    }
+    element = element.parentElement
+  }
+  return null
+}
 
 export function useTouchInput(containerRef: RefObject<HTMLElement | null>) {
   const { dispatch, state } = useFlipBook()
@@ -13,40 +63,11 @@ export function useTouchInput(containerRef: RefObject<HTMLElement | null>) {
   const lastTouchY = useRef<number | null>(null)
   const lastTouchTime = useRef<number>(0)
   const isHorizontalSwipe = useRef<boolean | null>(null)
+  const lastWheelTime = useRef<number>(0)
 
   useEffect(() => {
     const container = containerRef.current
     if (!container) return
-
-    // check if touch started on scrollable content
-    const isOnScrollableContent = (target: EventTarget | null): boolean => {
-      if (!target || !(target instanceof Element)) return false
-
-      let element: Element | null = target
-      while (element && element !== container) {
-        const style = window.getComputedStyle(element)
-        const overflowY = style.overflowY
-        const overflowX = style.overflowX
-
-        // check if element has scrollable overflow
-        if (overflowY === 'auto' || overflowY === 'scroll') {
-          const el = element as HTMLElement
-          // check if content actually overflows
-          if (el.scrollHeight > el.clientHeight) {
-            return true
-          }
-        }
-        if (overflowX === 'auto' || overflowX === 'scroll') {
-          const el = element as HTMLElement
-          if (el.scrollWidth > el.clientWidth) {
-            return true
-          }
-        }
-
-        element = element.parentElement
-      }
-      return false
-    }
 
     const handleTouchStart = (e: TouchEvent) => {
       if (e.touches.length !== 1) return
@@ -78,7 +99,7 @@ export function useTouchInput(containerRef: RefObject<HTMLElement | null>) {
         // need minimum movement to determine direction
         if (Math.max(absDeltaX, absDeltaY) > 10) {
           // check if touch is on scrollable content - if so, prefer vertical scroll
-          if (isOnScrollableContent(e.target)) {
+          if (isOnScrollableContent(e.target, container)) {
             // on scrollable content, only treat as horizontal if clearly horizontal
             isHorizontalSwipe.current = absDeltaX > absDeltaY * 2
           } else {
@@ -130,7 +151,7 @@ export function useTouchInput(containerRef: RefObject<HTMLElement | null>) {
             const direction = totalDeltaX > 0 ? 1 : -1
             const newPage = Math.max(
               0,
-              Math.min(49, state.currentPageIndex + direction)
+              Math.min(TOTAL_PAGES - 1, state.currentPageIndex + direction)
             )
             dispatch({ type: 'FLIP_TO_PAGE', payload: newPage })
           }
@@ -149,23 +170,9 @@ export function useTouchInput(containerRef: RefObject<HTMLElement | null>) {
     // add mouse wheel support for desktop
     const handleWheel = (e: WheelEvent) => {
       // check if wheel is on scrollable content
-      if (isOnScrollableContent(e.target)) {
-        // check if the scrollable element can actually scroll in this direction
+      if (isOnScrollableContent(e.target, container)) {
         const target = e.target as Element
-        let scrollable: HTMLElement | null = null
-
-        let element: Element | null = target
-        while (element && element !== container) {
-          const style = window.getComputedStyle(element)
-          if (style.overflowY === 'auto' || style.overflowY === 'scroll') {
-            const el = element as HTMLElement
-            if (el.scrollHeight > el.clientHeight) {
-              scrollable = el
-              break
-            }
-          }
-          element = element.parentElement
-        }
+        const scrollable = findScrollableAncestor(target, container)
 
         if (scrollable) {
           const canScrollDown = scrollable.scrollTop < scrollable.scrollHeight - scrollable.clientHeight
@@ -188,9 +195,16 @@ export function useTouchInput(containerRef: RefObject<HTMLElement | null>) {
 
       if (state.isFlipping || state.isEngaged) return
 
+      // debounce wheel events to prevent rapid-fire page flips
+      const now = performance.now()
+      if (now - lastWheelTime.current < WHEEL_DEBOUNCE_MS) {
+        return
+      }
+      lastWheelTime.current = now
+
       // navigate pages based on scroll direction
       const direction = delta > 0 ? 1 : -1
-      const newPage = Math.max(0, Math.min(49, state.currentPageIndex + direction))
+      const newPage = Math.max(0, Math.min(TOTAL_PAGES - 1, state.currentPageIndex + direction))
 
       if (newPage !== state.currentPageIndex) {
         dispatch({ type: 'FLIP_TO_PAGE', payload: newPage })

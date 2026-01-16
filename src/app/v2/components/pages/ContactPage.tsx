@@ -1,13 +1,17 @@
 'use client'
 
+import { useState } from 'react'
 import Box from '@mui/joy/Box'
 import Typography from '@mui/joy/Typography'
 import Stack from '@mui/joy/Stack'
 import Button from '@mui/joy/Button'
+import Divider from '@mui/joy/Divider'
 import EmailIcon from '@mui/icons-material/Email'
 import LinkedInIcon from '@mui/icons-material/LinkedIn'
 import InstagramIcon from '@mui/icons-material/Instagram'
+import MailOutlineIcon from '@mui/icons-material/MailOutline'
 import type { ContactData } from '../../data/portfolio-content'
+import { InquiryModal } from '@/components/InquiryModal'
 
 interface ContactPageProps {
   title: string
@@ -15,6 +19,8 @@ interface ContactPageProps {
 }
 
 export function ContactPage({ title, data }: ContactPageProps) {
+  const [modalOpen, setModalOpen] = useState(false)
+
   return (
     <Box
       sx={{
@@ -24,13 +30,15 @@ export function ContactPage({ title, data }: ContactPageProps) {
         justifyContent: 'center',
         height: '100%',
         textAlign: 'center',
+        overflow: 'auto',
+        py: 2,
       }}
     >
-      <Stack spacing={4} sx={{ maxWidth: '600px' }}>
+      <Stack spacing={3} sx={{ maxWidth: '600px', width: '100%' }}>
         <Typography
           level="h2"
           sx={{
-            fontSize: { xs: '2rem', md: '3rem' },
+            fontSize: { xs: '1.75rem', md: '2.5rem' },
             fontWeight: 700,
             color: '#000000',
             textTransform: 'lowercase',
@@ -42,7 +50,7 @@ export function ContactPage({ title, data }: ContactPageProps) {
         <Typography
           level="body-lg"
           sx={{
-            fontSize: { xs: '1.25rem', md: '1.5rem' },
+            fontSize: { xs: '1rem', md: '1.25rem' },
             color: '#262626',
             lineHeight: 1.7,
           }}
@@ -57,7 +65,7 @@ export function ContactPage({ title, data }: ContactPageProps) {
             size="lg"
             startDecorator={<EmailIcon />}
             sx={{
-              fontSize: '1.25rem',
+              fontSize: '1.125rem',
               py: 1.5,
               background: 'linear-gradient(90deg, #9333ea 0%, #ec4899 100%)',
               '&:hover': {
@@ -78,7 +86,7 @@ export function ContactPage({ title, data }: ContactPageProps) {
               startDecorator={<LinkedInIcon />}
               variant="outlined"
               sx={{
-                fontSize: '1.125rem',
+                fontSize: '1rem',
                 borderColor: '#9333ea',
                 color: '#9333ea',
                 '&:hover': {
@@ -99,7 +107,7 @@ export function ContactPage({ title, data }: ContactPageProps) {
               startDecorator={<InstagramIcon />}
               variant="outlined"
               sx={{
-                fontSize: '1.125rem',
+                fontSize: '1rem',
                 borderColor: '#ec4899',
                 color: '#ec4899',
                 '&:hover': {
@@ -113,12 +121,45 @@ export function ContactPage({ title, data }: ContactPageProps) {
           </Box>
         </Stack>
 
+        {/* divider with inquiry form option */}
+        <Divider sx={{ my: 1 }}>
+          <Typography level="body-sm" sx={{ color: '#737373' }}>
+            or
+          </Typography>
+        </Divider>
+
+        {/* send a message button that opens the inquiry modal */}
+        <Button
+          onClick={() => setModalOpen(true)}
+          size="lg"
+          variant="soft"
+          startDecorator={<MailOutlineIcon />}
+          sx={{
+            fontSize: '1.125rem',
+            py: 1.5,
+            bgcolor: '#f3e8ff',
+            color: '#9333ea',
+            '&:hover': {
+              bgcolor: '#e9d5ff',
+            },
+          }}
+        >
+          send me a message
+        </Button>
+
+        {/* inquiry modal */}
+        <InquiryModal
+          open={modalOpen}
+          onClose={() => setModalOpen(false)}
+          showTrigger={false}
+        />
+
         <Typography
           level="body-sm"
           sx={{
-            fontSize: '1rem',
+            fontSize: '0.875rem',
             color: '#737373',
-            mt: 4,
+            mt: 2,
           }}
         >
           this is the final page of the flipbook.

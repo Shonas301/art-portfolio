@@ -6,14 +6,19 @@ import Box from '@mui/joy/Box'
 import Card from '@mui/joy/Card'
 import CardContent from '@mui/joy/CardContent'
 import Typography from '@mui/joy/Typography'
+import IconButton from '@mui/joy/IconButton'
+import Chip from '@mui/joy/Chip'
+import InfoIcon from '@mui/icons-material/Info'
+import LocalMallIcon from '@mui/icons-material/LocalMall'
 import type { GalleryItem } from '@/types/gallery'
 
 interface GalleryGridProps {
   items: GalleryItem[]
   onItemClick: (index: number) => void
+  onInfoClick?: (index: number) => void
 }
 
-export function GalleryGrid({ items, onItemClick }: GalleryGridProps) {
+export function GalleryGrid({ items, onItemClick, onInfoClick }: GalleryGridProps) {
   const videoRefs = useRef<{ [key: number]: HTMLVideoElement | null }>({})
 
   return (
@@ -83,14 +88,60 @@ export function GalleryGrid({ items, onItemClick }: GalleryGridProps) {
                 priority={index < 3}
               />
             )}
+            {/* for sale badge */}
+            {item.isForSale && (
+              <Chip
+                size="sm"
+                variant="solid"
+                startDecorator={<LocalMallIcon sx={{ fontSize: 14 }} />}
+                sx={{
+                  position: 'absolute',
+                  top: 8,
+                  left: 8,
+                  bgcolor: '#16a34a',
+                  color: 'white',
+                  fontWeight: 600,
+                  fontSize: '0.7rem',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.05em',
+                }}
+              >
+                {item.priceRange || 'for sale'}
+              </Chip>
+            )}
           </Box>
-          <CardContent>
-            <Typography level="title-md" sx={{ mb: 0.5 }}>
-              {item.title}
-            </Typography>
-            <Typography level="body-sm">
-              {item.description}
-            </Typography>
+          <CardContent sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <Box sx={{ flex: 1 }}>
+              <Typography level="title-md" sx={{ mb: 0.5 }}>
+                {item.title}
+              </Typography>
+              <Typography level="body-sm">
+                {item.description}
+              </Typography>
+            </Box>
+            {onInfoClick && (
+              <IconButton
+                size="sm"
+                variant="soft"
+                color="primary"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onInfoClick(index)
+                }}
+                aria-label={`view details for ${item.title}`}
+                sx={{
+                  ml: 1,
+                  flexShrink: 0,
+                  bgcolor: '#9333ea',
+                  color: 'white',
+                  '&:hover': {
+                    bgcolor: '#7e22ce',
+                  },
+                }}
+              >
+                <InfoIcon fontSize="small" />
+              </IconButton>
+            )}
           </CardContent>
         </Card>
       ))}
