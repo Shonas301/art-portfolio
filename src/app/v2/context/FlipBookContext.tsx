@@ -20,6 +20,7 @@ export interface FlipBookState {
   isBookFlipped: boolean
   isBookFlipping: boolean
   adminAuthenticated: boolean
+  boundaryHit: 'start' | 'end' | null
 }
 
 export interface BendingPage {
@@ -52,6 +53,10 @@ export type FlipBookAction =
   | { type: 'BOOK_FLIP_COMPLETE' }
   | { type: 'ADMIN_LOGIN' }
   | { type: 'ADMIN_LOGOUT' }
+  | { type: 'BOUNDARY_HIT'; payload: 'start' | 'end' }
+  | { type: 'CLEAR_BOUNDARY' }
+  | { type: 'SKIP_TO_TARGET' }
+
 const initialState: FlipBookState = {
   currentPageIndex: 0,
   isFlipping: false,
@@ -69,6 +74,7 @@ const initialState: FlipBookState = {
   isBookFlipped: false,
   isBookFlipping: false,
   adminAuthenticated: false,
+  boundaryHit: null,
 }
 
 function flipBookReducer(state: FlipBookState, action: FlipBookAction): FlipBookState {
@@ -285,6 +291,33 @@ function flipBookReducer(state: FlipBookState, action: FlipBookAction): FlipBook
         adminAuthenticated: false,
         isBookFlipped: false,
       }
+    }
+
+    case 'BOUNDARY_HIT': {
+      return {
+        ...state,
+        boundaryHit: action.payload,
+      }
+    }
+
+    case 'CLEAR_BOUNDARY': {
+      return {
+        ...state,
+        boundaryHit: null,
+      }
+    }
+
+    case 'SKIP_TO_TARGET': {
+      if (state.targetPageIndex !== null && (state.isFlipping || state.isRiffling)) {
+        return {
+          ...state,
+          currentPageIndex: state.targetPageIndex,
+          isFlipping: false,
+          isRiffling: false,
+          targetPageIndex: null,
+        }
+      }
+      return state
     }
 
     default:

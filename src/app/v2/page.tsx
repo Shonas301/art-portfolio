@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import Box from '@mui/joy/Box'
 import { motion } from 'framer-motion'
 import { FlipBookProvider, useFlipBook } from './context/FlipBookContext'
@@ -13,11 +13,14 @@ import { FlippingPage } from './components/FlippingPage'
 import { FlippedPagesStack } from './components/FlippedPagesStack'
 import { ResumeModal } from './components/ResumeModal'
 import { DebugOverlay } from './components/DebugOverlay'
+import { KeyboardHelpModal } from './components/KeyboardHelpModal'
+import { PageIndicator } from './components/PageIndicator'
+import { BoundaryFeedback } from './components/BoundaryFeedback'
 import { BendingPages } from './components/BendingPages'
 import { CascadingRelease } from './components/CascadingRelease'
 import { BookBack } from './components/BookBack'
 import { useTouchInput } from './hooks/useTouchInput'
-import { TOTAL_PAGES, sectionMappings, getSectionAtPage } from './data/portfolio-content'
+import { sectionMappings, getSectionAtPage, getLastContentPage } from './data/portfolio-content'
 
 function getAdjacentSection(currentPage: number, direction: 'next' | 'prev'): number | null {
   const sortedSections = [...sectionMappings].sort((a, b) => a.physicalPage - b.physicalPage)
@@ -51,6 +54,7 @@ function updateUrlHash(sectionId: string | null) {
 
 function FlipBookContent() {
   const { state, dispatch } = useFlipBook()
+  const [helpOpen, setHelpOpen] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
   const hasInitialized = useRef(false)
 
@@ -149,22 +153,46 @@ function FlipBookContent() {
         return
       }
 
+      // help modal toggle works anytime
+      if (e.key === '?') {
+        const target = e.target as HTMLElement
+        if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) return
+        if (state.isBookFlipped) return  // no help on admin panel
+        setHelpOpen(prev => !prev)
+        return
+      }
+
       // don't handle navigation while book is flipped or flipping
       if (state.isBookFlipped || state.isBookFlipping) return
 
-      if (state.isFlipping || state.isEngaged) return
+      // during animation, allow arrow keys to skip to target
+      if (state.isFlipping || state.isEngaged) {
+        if ((e.key === 'ArrowLeft' || e.key === 'ArrowRight') && state.isFlipping) {
+          e.preventDefault()
+          // skip current animation — safe because FlippingPage unmounts on isFlipping=false,
+          // which triggers cleanup of any pending animation timers
+          dispatch({ type: 'SKIP_TO_TARGET' })
+        }
+        return
+      }
 
       switch (e.key) {
-        case 'ArrowRight':
+        case 'ArrowRight': {
           e.preventDefault()
-          if (state.currentPageIndex < TOTAL_PAGES - 1) {
+          const lastContentPage = getLastContentPage()
+          if (state.currentPageIndex >= lastContentPage) {
+            dispatch({ type: 'BOUNDARY_HIT', payload: 'end' })
+          } else {
             dispatch({ type: 'FLIP_TO_PAGE', payload: state.currentPageIndex + 1 })
           }
           break
+        }
 
         case 'ArrowLeft':
           e.preventDefault()
-          if (state.currentPageIndex > 0) {
+          if (state.currentPageIndex === 0) {
+            dispatch({ type: 'BOUNDARY_HIT', payload: 'start' })
+          } else {
             dispatch({ type: 'FLIP_TO_PAGE', payload: state.currentPageIndex - 1 })
           }
           break
@@ -197,9 +225,7 @@ function FlipBookContent() {
         case 'End': {
           e.preventDefault()
           // navigate to the last content page, not the last physical page
-          const lastContentPage = sectionMappings.reduce(
-            (max, s) => Math.max(max, s.physicalPage), 0
-          )
+          const lastContentPage = getLastContentPage()
           if (state.currentPageIndex !== lastContentPage) {
             dispatch({ type: 'FLIP_TO_PAGE', payload: lastContentPage })
           }
@@ -225,6 +251,8 @@ function FlipBookContent() {
       <MobileNav />
       <ResumeModal />
       <DebugOverlay />
+      <KeyboardHelpModal isOpen={helpOpen} onClose={() => setHelpOpen(false)} />
+      <BoundaryFeedback />
 
       {/* flip book container */}
       <Box
@@ -293,6 +321,19 @@ function FlipBookContent() {
           {/* back of book - admin panel */}
           <BookBack />
         </motion.div>
+      </Box>
+
+      {/* page indicator */}
+      <Box
+        sx={{
+          position: 'fixed',
+          bottom: '16px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          zIndex: 20,
+        }}
+      >
+        <PageIndicator />
       </Box>
     </Box>
   )

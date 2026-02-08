@@ -1,7 +1,7 @@
 import type { GalleryItem } from '@/types/gallery'
 
 // flipbook physical model
-export const TOTAL_PAGES = 50
+export const TOTAL_PAGES = 47
 
 // page content types
 export type PageType = 'landing' | 'intro' | 'gallery' | 'code' | 'contact' | 'blank'
@@ -14,7 +14,7 @@ export interface PageContent {
   data?: LandingData | IntroData | GalleryData | CodeData | ContactData
 }
 
-// sections mapped to physical pages (spread across the 50-page book)
+// sections mapped to physical pages (spread across the 47-page book)
 export interface SectionMapping {
   id: string
   section: string
@@ -39,6 +39,11 @@ export function getPhysicalPageForSection(sectionId: string): number {
 // helper to get section at a physical page (or null if blank page)
 export function getSectionAtPage(physicalPage: number): SectionMapping | null {
   return sectionMappings.find(s => s.physicalPage === physicalPage) ?? null
+}
+
+// get the physical page index of the last content section
+export function getLastContentPage(): number {
+  return sectionMappings.reduce((max, s) => Math.max(max, s.physicalPage), 0)
 }
 
 export interface LandingData {

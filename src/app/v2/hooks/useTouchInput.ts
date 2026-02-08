@@ -1,6 +1,6 @@
 import { useEffect, useRef, type RefObject } from 'react'
 import { useFlipBook } from '../context/FlipBookContext'
-import { TOTAL_PAGES } from '../data/portfolio-content'
+import { getLastContentPage } from '../data/portfolio-content'
 
 // minimum horizontal distance to consider a swipe for page navigation
 const HORIZONTAL_SWIPE_THRESHOLD = 30
@@ -151,7 +151,7 @@ export function useTouchInput(containerRef: RefObject<HTMLElement | null>) {
             const direction = totalDeltaX > 0 ? 1 : -1
             const newPage = Math.max(
               0,
-              Math.min(TOTAL_PAGES - 1, state.currentPageIndex + direction)
+              Math.min(getLastContentPage(), state.currentPageIndex + direction)
             )
             dispatch({ type: 'FLIP_TO_PAGE', payload: newPage })
           }
@@ -204,7 +204,7 @@ export function useTouchInput(containerRef: RefObject<HTMLElement | null>) {
 
       // navigate pages based on scroll direction
       const direction = delta > 0 ? 1 : -1
-      const newPage = Math.max(0, Math.min(TOTAL_PAGES - 1, state.currentPageIndex + direction))
+      const newPage = Math.max(0, Math.min(getLastContentPage(), state.currentPageIndex + direction))
 
       if (newPage !== state.currentPageIndex) {
         dispatch({ type: 'FLIP_TO_PAGE', payload: newPage })

@@ -33,7 +33,21 @@ function renderPageContent(physicalPage: number) {
   const section = sectionMappings.find(s => s.physicalPage === physicalPage)
 
   if (!section) {
-    return null
+    // blank page — show subtle page number
+    return (
+      <Box
+        sx={{
+          position: 'absolute',
+          bottom: '12px',
+          right: '16px',
+          color: '#d4d4d4',
+          fontSize: '0.7rem',
+          userSelect: 'none',
+        }}
+      >
+        {physicalPage + 1}
+      </Box>
+    )
   }
 
   const contentIndex = sectionToContentIndex[section.id]

@@ -1,7 +1,9 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import Box from '@mui/joy/Box'
 import Typography from '@mui/joy/Typography'
+import { motion, AnimatePresence } from 'framer-motion'
 import type { LandingData } from '../../data/portfolio-content'
 
 interface LandingPageProps {
@@ -10,6 +12,35 @@ interface LandingPageProps {
 }
 
 export function LandingPage({ title, data }: LandingPageProps) {
+  const [showHint, setShowHint] = useState(() => {
+    if (typeof window === 'undefined') return false
+    return !sessionStorage.getItem('flipbook-hint-dismissed')
+  })
+
+  // persist dismissal to sessionStorage
+  useEffect(() => {
+    if (!showHint && typeof window !== 'undefined') {
+      sessionStorage.setItem('flipbook-hint-dismissed', 'true')
+    }
+  }, [showHint])
+
+  // fade out after 5 seconds
+  useEffect(() => {
+    const timer = setTimeout(() => setShowHint(false), 5000)
+    return () => clearTimeout(timer)
+  }, [])
+
+  // dismiss on any user interaction
+  useEffect(() => {
+    const dismiss = () => setShowHint(false)
+    window.addEventListener('keydown', dismiss, { once: true })
+    window.addEventListener('pointerdown', dismiss, { once: true })
+    return () => {
+      window.removeEventListener('keydown', dismiss)
+      window.removeEventListener('pointerdown', dismiss)
+    }
+  }, [])
+
   return (
     <Box
       sx={{
@@ -47,6 +78,40 @@ export function LandingPage({ title, data }: LandingPageProps) {
           {data.subtitle}
         </Typography>
       )}
+
+      {/* interaction hint - fades out after timeout or first interaction */}
+      <AnimatePresence>
+        {showHint && (
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.5 }}
+            style={{ marginTop: '2rem' }}
+          >
+            <motion.div
+              animate={{ x: [0, 6, 0] }}
+              transition={{
+                duration: 1.5,
+                repeat: Infinity,
+                ease: 'easeInOut',
+              }}
+            >
+              <Typography
+                sx={{
+                  fontSize: '0.85rem',
+                  color: 'rgba(147, 51, 234, 0.55)',
+                  fontWeight: 400,
+                  letterSpacing: '0.02em',
+                  userSelect: 'none',
+                }}
+              >
+                use arrow keys or swipe to explore →
+              </Typography>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </Box>
   )
 }
