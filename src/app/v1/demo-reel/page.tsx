@@ -31,7 +31,7 @@ export default function DemoReel() {
         >
           <Box
             component="iframe"
-            src="https://www.youtube.com/embed/bdrST1IbN3k"
+            src="https://player.vimeo.com/video/1018084842?h=82717f6b50"
             title="3D Generalist Reel"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowFullScreen
