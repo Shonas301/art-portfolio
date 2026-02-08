@@ -105,8 +105,11 @@ export function InquiryForm({ artworkId, artworkTitle, onSuccess }: InquiryFormP
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          ...formData,
-          artworkId: artworkId || null,
+          name: formData.name,
+          email: formData.email,
+          inquiry_type: formData.inquiryType,
+          message: formData.message,
+          artwork_id: artworkId || null,
         }),
       })
 

@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Box from '@mui/joy/Box'
 import Typography from '@mui/joy/Typography'
@@ -18,6 +19,20 @@ export function ResumeModal() {
   const handleClose = () => {
     dispatch({ type: 'CLOSE_RESUME' })
   }
+
+  // close modal on escape key press
+  useEffect(() => {
+    if (!state.resumeOpen) return
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        dispatch({ type: 'CLOSE_RESUME' })
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [state.resumeOpen, dispatch])
 
   return (
     <AnimatePresence>
@@ -86,6 +101,9 @@ export function ResumeModal() {
                 </Typography>
                 <Box sx={{ display: 'flex', gap: 1 }}>
                   <IconButton
+                    component="a"
+                    href="/resume.pdf"
+                    download
                     size="lg"
                     variant="outlined"
                     sx={{

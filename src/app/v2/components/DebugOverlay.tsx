@@ -48,6 +48,11 @@ export function DebugOverlay() {
     }
   }, [state.isFlipping, flipStartTime, state.debugMode, isMounted])
 
+  // gate debug overlay behind development environment
+  if (process.env.NODE_ENV !== 'development') {
+    return null
+  }
+
   // don't render anything on server to avoid hydration mismatch
   if (!isMounted) {
     return null

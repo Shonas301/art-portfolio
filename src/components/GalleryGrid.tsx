@@ -12,6 +12,10 @@ import InfoIcon from '@mui/icons-material/Info'
 import LocalMallIcon from '@mui/icons-material/LocalMall'
 import type { GalleryItem } from '@/types/gallery'
 
+// detect youtube urls so we don't try to play them in a native video element
+const isYouTubeUrl = (url: string) =>
+  url.includes('youtube.com') || url.includes('youtu.be')
+
 interface GalleryGridProps {
   items: GalleryItem[]
   onItemClick: (index: number) => void
@@ -60,7 +64,65 @@ export function GalleryGrid({ items, onItemClick, onInfoClick }: GalleryGridProp
               }
             }}
           >
-            {item.type === 'video' ? (
+            {item.type === 'video' && isYouTubeUrl(item.src) ? (
+              // youtube urls can't be played in native video elements,
+              // so show thumbnail with a play overlay that links out
+              <Box
+                component="a"
+                href={item.src}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e: React.MouseEvent) => e.stopPropagation()}
+                sx={{
+                  display: 'block',
+                  position: 'relative',
+                  width: '100%',
+                  height: '100%',
+                }}
+              >
+                <Image
+                  src={item.thumbnail}
+                  alt={item.title}
+                  fill
+                  sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                  style={{ objectFit: 'cover' }}
+                  loading={index < 3 ? 'eager' : 'lazy'}
+                  priority={index < 3}
+                />
+                {/* play icon overlay */}
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    top: '50%',
+                    left: '50%',
+                    transform: 'translate(-50%, -50%)',
+                    width: 56,
+                    height: 56,
+                    borderRadius: '50%',
+                    bgcolor: 'rgba(0, 0, 0, 0.6)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    transition: 'background-color 0.2s',
+                    '&:hover': {
+                      bgcolor: 'rgba(0, 0, 0, 0.8)',
+                    },
+                  }}
+                >
+                  <Box
+                    component="span"
+                    sx={{
+                      color: 'white',
+                      fontSize: '1.5rem',
+                      lineHeight: 1,
+                      ml: '3px', // optical centering for play triangle
+                    }}
+                  >
+                    ▶
+                  </Box>
+                </Box>
+              </Box>
+            ) : item.type === 'video' ? (
               <video
                 ref={(el) => {
                   videoRefs.current[item.id] = el

@@ -74,9 +74,9 @@ function FlipBookContent() {
 
     // special case: resume hash opens the resume modal
     if (hash === 'resume') {
-      setTimeout(() => {
+      requestAnimationFrame(() => {
         dispatch({ type: 'OPEN_RESUME' })
-      }, 100)
+      })
       return
     }
 
@@ -87,9 +87,9 @@ function FlipBookContent() {
       if (isAuthenticated) {
         dispatch({ type: 'ADMIN_LOGIN' })
       }
-      setTimeout(() => {
+      requestAnimationFrame(() => {
         dispatch({ type: 'FLIP_BOOK_OVER' })
-      }, 100)
+      })
       return
     }
 
@@ -97,10 +97,10 @@ function FlipBookContent() {
     if (sectionId) {
       const section = sectionMappings.find(s => s.id === sectionId)
       if (section && section.physicalPage !== state.currentPageIndex) {
-        // use a small delay to ensure the component is fully mounted
-        setTimeout(() => {
+        // wait for first paint so context/reducer is fully initialized
+        requestAnimationFrame(() => {
           dispatch({ type: 'FLIP_TO_PAGE', payload: section.physicalPage })
-        }, 100)
+        })
       }
     }
   }, [dispatch, state.currentPageIndex])
@@ -194,12 +194,17 @@ function FlipBookContent() {
           }
           break
 
-        case 'End':
+        case 'End': {
           e.preventDefault()
-          if (state.currentPageIndex !== TOTAL_PAGES - 1) {
-            dispatch({ type: 'FLIP_TO_PAGE', payload: TOTAL_PAGES - 1 })
+          // navigate to the last content page, not the last physical page
+          const lastContentPage = sectionMappings.reduce(
+            (max, s) => Math.max(max, s.physicalPage), 0
+          )
+          if (state.currentPageIndex !== lastContentPage) {
+            dispatch({ type: 'FLIP_TO_PAGE', payload: lastContentPage })
           }
           break
+        }
       }
     }
 

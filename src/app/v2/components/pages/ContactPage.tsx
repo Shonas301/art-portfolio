@@ -162,7 +162,7 @@ export function ContactPage({ title, data }: ContactPageProps) {
             mt: 2,
           }}
         >
-          this is the final page of the flipbook.
+          thanks for flipping through!
           <br />
           click the resume tab to view my resume!
         </Typography>
