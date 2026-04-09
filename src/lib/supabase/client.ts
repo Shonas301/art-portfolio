@@ -2,14 +2,15 @@
 // uses @supabase/ssr for next.js 15 compatibility
 
 import { createBrowserClient } from '@supabase/ssr';
+import { client } from '@/lib/env';
 import type { Database } from './types';
 
 // create a singleton supabase client for browser usage
 // this client is safe to use in client components and handles auth automatically
 export function createClient() {
   return createBrowserClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    client.supabaseUrl,
+    client.supabaseAnonKey,
   );
 }
 

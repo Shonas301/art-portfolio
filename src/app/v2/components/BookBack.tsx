@@ -10,6 +10,7 @@ export function BookBack() {
 
   return (
     <Box
+      aria-hidden={!state.isBookFlipped}
       sx={{
         position: 'absolute',
         top: 0,

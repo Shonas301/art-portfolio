@@ -3,10 +3,7 @@
 
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { cookies } from 'next/headers';
-
-// note: we don't use the Database generic type here to avoid strict type checking
-// issues during development. once supabase is fully set up, you can generate
-// proper types using: npx supabase gen types typescript --project-id <your-project-id>
+import { client, server } from '@/lib/env';
 
 // create a supabase client for server-side usage
 // this should be called fresh for each request to handle cookies properly
@@ -14,8 +11,8 @@ export async function createClient() {
   const cookieStore = await cookies();
 
   return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    client.supabaseUrl,
+    client.supabaseAnonKey,
     {
       cookies: {
         getAll() {
@@ -26,10 +23,10 @@ export async function createClient() {
             cookiesToSet.forEach(({ name, value, options }) =>
               cookieStore.set(name, value, options)
             );
-          } catch {
-            // the `setAll` method is called from a server component
-            // which throws when trying to set cookies
-            // this can be ignored if middleware handles session refresh
+          } catch (err) {
+            // setAll called from server component context — can be ignored
+            // if middleware handles session refresh
+            console.error('supabase setAll cookie error (non-critical):', err);
           }
         },
       },
@@ -43,7 +40,7 @@ export async function createClient() {
 export async function createAdminClient() {
   const cookieStore = await cookies();
 
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const serviceRoleKey = server.supabaseServiceRoleKey;
 
   if (!serviceRoleKey) {
     throw new Error(
@@ -52,7 +49,7 @@ export async function createAdminClient() {
   }
 
   return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    client.supabaseUrl,
     serviceRoleKey,
     {
       cookies: {
@@ -64,8 +61,8 @@ export async function createAdminClient() {
             cookiesToSet.forEach(({ name, value, options }) =>
               cookieStore.set(name, value, options)
             );
-          } catch {
-            // same as above - can be ignored if middleware handles refresh
+          } catch (err) {
+            console.error('supabase admin setAll cookie error (non-critical):', err);
           }
         },
       },
@@ -84,8 +81,8 @@ export function createRouteHandlerClient(
   cookieStore: Awaited<ReturnType<typeof cookies>>
 ) {
   return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    client.supabaseUrl,
+    client.supabaseAnonKey,
     {
       cookies: {
         getAll() {
@@ -96,8 +93,8 @@ export function createRouteHandlerClient(
             cookiesToSet.forEach(({ name, value, options }) =>
               cookieStore.set(name, value, options)
             );
-          } catch {
-            // ignored in server component context
+          } catch (err) {
+            console.error('supabase route handler setAll cookie error (non-critical):', err);
           }
         },
       },
@@ -109,7 +106,7 @@ export function createRouteHandlerClient(
 export function createRouteHandlerAdminClient(
   cookieStore: Awaited<ReturnType<typeof cookies>>
 ) {
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const serviceRoleKey = server.supabaseServiceRoleKey;
 
   if (!serviceRoleKey) {
     throw new Error(
@@ -118,7 +115,7 @@ export function createRouteHandlerAdminClient(
   }
 
   return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    client.supabaseUrl,
     serviceRoleKey,
     {
       cookies: {
@@ -130,8 +127,8 @@ export function createRouteHandlerAdminClient(
             cookiesToSet.forEach(({ name, value, options }) =>
               cookieStore.set(name, value, options)
             );
-          } catch {
-            // ignored in server component context
+          } catch (err) {
+            console.error('supabase admin route handler setAll cookie error (non-critical):', err);
           }
         },
       },

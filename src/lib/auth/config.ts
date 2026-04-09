@@ -1,5 +1,6 @@
 import { NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
+import { server } from "@/lib/env";
 
 // extend the session type to include isAdmin flag
 declare module "next-auth" {
@@ -23,8 +24,8 @@ declare module "next-auth/jwt" {
 export const authOptions: NextAuthOptions = {
   providers: [
     GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      clientId: server.googleClientId,
+      clientSecret: server.googleClientSecret,
     }),
   ],
 
@@ -40,7 +41,7 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, user }) {
       if (user?.email) {
         // check if user email matches the admin email from env
-        const adminEmail = process.env.ADMIN_EMAIL;
+        const adminEmail = server.adminEmail;
         token.isAdmin = adminEmail ? user.email === adminEmail : false;
       }
       return token;

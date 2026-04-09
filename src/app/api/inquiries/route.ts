@@ -1,6 +1,6 @@
 // api route for commission/contact inquiries
 // get: list all inquiries (admin only)
-// post: submit new inquiry (public)
+// post: submit new inquiry (public, rate-limited)
 
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
@@ -17,6 +17,63 @@ const VALID_STATUSES: InquiryStatus[] = ["new", "read", "responded", "archived"]
 
 // email validation regex
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+// -- rate limiting --
+// in-memory store: ip -> array of request timestamps
+const rateLimitMap = new Map<string, number[]>();
+const RATE_LIMIT_WINDOW_MS = 60 * 1000; // 1 minute
+const RATE_LIMIT_MAX_REQUESTS = 5;
+
+// clean up stale entries every 5 minutes to prevent memory leak
+const CLEANUP_INTERVAL_MS = 5 * 60 * 1000;
+let lastCleanup = Date.now();
+
+function cleanupRateLimitMap() {
+  const now = Date.now();
+  if (now - lastCleanup < CLEANUP_INTERVAL_MS) return;
+  lastCleanup = now;
+
+  for (const [ip, timestamps] of rateLimitMap.entries()) {
+    const valid = timestamps.filter((t) => now - t < RATE_LIMIT_WINDOW_MS);
+    if (valid.length === 0) {
+      rateLimitMap.delete(ip);
+    } else {
+      rateLimitMap.set(ip, valid);
+    }
+  }
+}
+
+function isRateLimited(ip: string): boolean {
+  cleanupRateLimitMap();
+
+  const now = Date.now();
+  const timestamps = rateLimitMap.get(ip) ?? [];
+
+  // keep only timestamps within the window
+  const recent = timestamps.filter((t) => now - t < RATE_LIMIT_WINDOW_MS);
+
+  if (recent.length >= RATE_LIMIT_MAX_REQUESTS) {
+    return true;
+  }
+
+  recent.push(now);
+  rateLimitMap.set(ip, recent);
+  return false;
+}
+
+function getClientIp(request: NextRequest): string {
+  // check common proxy headers
+  const forwarded = request.headers.get("x-forwarded-for");
+  if (forwarded) {
+    return forwarded.split(",")[0].trim();
+  }
+  const realIp = request.headers.get("x-real-ip");
+  if (realIp) {
+    return realIp.trim();
+  }
+  // fallback — shouldn't happen in production behind a proxy
+  return "unknown";
+}
 
 // get: list all inquiries (requires admin auth)
 export async function GET(request: NextRequest) {
@@ -129,6 +186,15 @@ export async function GET(request: NextRequest) {
 // post: submit new inquiry (public, no auth required)
 export async function POST(request: NextRequest) {
   try {
+    // rate limit check
+    const clientIp = getClientIp(request);
+    if (isRateLimited(clientIp)) {
+      return NextResponse.json(
+        { error: "too many requests — please try again in a minute" },
+        { status: 429 }
+      );
+    }
+
     // parse request body
     let body: Record<string, unknown>;
     try {
