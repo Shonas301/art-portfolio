@@ -84,7 +84,7 @@ export const PageStack = memo(function PageStack() {
 
   // start with static content, replace with dynamic on fetch
   const [content, setContent] = useState<PageContent[]>(staticContent)
-  const [isLoading, setIsLoading] = useState(true)
+  const [isFetching, setIsFetching] = useState(true)
 
   useEffect(() => {
     let cancelled = false
@@ -100,7 +100,7 @@ export const PageStack = memo(function PageStack() {
       })
       .finally(() => {
         if (!cancelled) {
-          setIsLoading(false)
+          setIsFetching(false)
         }
       })
 
@@ -177,6 +177,7 @@ export const PageStack = memo(function PageStack() {
             p: { xs: 4, md: 6, lg: 8 },
             height: '100%',
             overflow: 'auto',
+            position: 'relative',
             '&::-webkit-scrollbar': {
               width: '8px',
             },
@@ -189,28 +190,29 @@ export const PageStack = memo(function PageStack() {
             },
           }}
         >
-          {isLoading ? (
+          <ErrorBoundary>
+            {renderPageContent(currentPageIndex, content)}
+          </ErrorBoundary>
+
+          {/* subtle loading indicator while supabase data loads */}
+          {isFetching && (
             <Box
               sx={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                height: '100%',
-                minHeight: '200px',
+                position: 'absolute',
+                bottom: '16px',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                opacity: 0.5,
               }}
             >
               <CircularProgress
-                size="lg"
+                size="sm"
                 sx={{
                   '--CircularProgress-trackColor': 'rgba(0,0,0,0.05)',
                   '--CircularProgress-progressColor': '#c8c4bc',
                 }}
               />
             </Box>
-          ) : (
-            <ErrorBoundary>
-              {renderPageContent(currentPageIndex, content)}
-            </ErrorBoundary>
           )}
         </Box>
       </Box>
