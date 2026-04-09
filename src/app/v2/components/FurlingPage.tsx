@@ -23,6 +23,8 @@ export function FurlingPage({ direction, onComplete }: FurlingPageProps) {
   const segmentRefs = useRef<(HTMLDivElement | null)[]>([])
   const bindingShadowRef = useRef<HTMLDivElement | null>(null)
   const bottomShadowRef = useRef<HTMLDivElement | null>(null)
+  // depth overlay refs — replacement for ::after pseudo-elements that need per-frame updates
+  const depthOverlayRefs = useRef<(HTMLDivElement | null)[]>([])
 
   const onCompleteRef = useCallback(() => {
     onComplete()
@@ -44,9 +46,15 @@ export function FurlingPage({ direction, onComplete }: FurlingPageProps) {
           ? `0 ${segment.furlDepth * 0.15}px ${segment.furlDepth * 0.4}px rgba(0,0,0,${0.15 + segment.furlDepth * 0.002})`
           : 'none'
       }
+
+      // update depth overlay gradient (replaces ::after pseudo-element)
+      const overlay = depthOverlayRefs.current[segment.index]
+      if (overlay) {
+        overlay.style.background = `linear-gradient(90deg, rgba(0,0,0,${segment.furlDepth * 0.001}) 0%, rgba(255,255,255,${segment.furlDepth * 0.002}) 50%, rgba(0,0,0,${segment.furlDepth * 0.0005}) 100%)`
+      }
     })
 
-    // update binding shadow opacity
+    // update binding shadow
     const bindingEl = bindingShadowRef.current
     if (bindingEl) {
       const maxFurl = Math.max(...segments.map(s => s.furlDepth))
@@ -162,13 +170,15 @@ export function FurlingPage({ direction, onComplete }: FurlingPageProps) {
                   linear-gradient(rgba(0,0,0,0.015) 1px, transparent 1px)
                 `,
                 backgroundSize: '20px 20px',
-                // gradient to show depth on curved areas
-                '&::after': {
-                  content: '""',
-                  position: 'absolute',
-                  inset: 0,
-                  pointerEvents: 'none',
-                },
+              }}
+            />
+            {/* depth overlay — replaces ::after pseudo for per-frame gradient updates */}
+            <Box
+              ref={(el: HTMLDivElement | null) => { depthOverlayRefs.current[i] = el }}
+              sx={{
+                position: 'absolute',
+                inset: 0,
+                pointerEvents: 'none',
               }}
             />
           </Box>

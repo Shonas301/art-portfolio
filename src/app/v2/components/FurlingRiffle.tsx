@@ -30,8 +30,7 @@ function getLayerCount(pageCount: number): number {
 
 export function FurlingRiffle({ pageCount, direction, onComplete }: FurlingRiffleProps) {
   const progressRef = useRef(0)
-  // refs for each layer's container element, keyed by layer index
-  // each layer has segmentCount segment refs inside it
+  // refs for each layer's container element
   const layerRefs = useRef<(HTMLDivElement | null)[]>([])
   const bindingShadowRef = useRef<HTMLDivElement | null>(null)
 
@@ -71,7 +70,9 @@ export function FurlingRiffle({ pageCount, direction, onComplete }: FurlingRiffl
       // calculate segment transforms for this layer's progress
       const segments = calculateSegmentTransforms(direction, layerProgress, RIFFLE_CONFIG)
 
-      // update each segment DOM node inside this layer
+      // each layer has segmentCount segment containers as children
+      // segment structure: <segment-box> -> <surface-box> + <depth-overlay-box>
+      // but the middle segment also has content lines inside the surface
       const segmentEls = layerEl.children
       for (let segIdx = 0; segIdx < segments.length; segIdx++) {
         const segEl = segmentEls[segIdx] as HTMLElement | undefined
@@ -79,12 +80,18 @@ export function FurlingRiffle({ pageCount, direction, onComplete }: FurlingRiffl
         const seg = segments[segIdx]
         segEl.style.transform = `rotateY(${seg.flipAngle}deg) translateZ(${seg.furlDepth}px) rotateX(${seg.tiltAngle}deg)`
 
-        // update box shadow on inner surface
-        const surface = segEl.firstElementChild as HTMLElement | null
+        // update box shadow on inner surface (first child)
+        const surface = segEl.children[0] as HTMLElement | undefined
         if (surface) {
           surface.style.boxShadow = seg.furlDepth > 15
             ? `0 ${seg.furlDepth * 0.12}px ${seg.furlDepth * 0.3}px rgba(0,0,0,${0.12 + seg.furlDepth * 0.0015})`
             : 'none'
+        }
+
+        // update depth overlay gradient (second child)
+        const overlay = segEl.children[1] as HTMLElement | undefined
+        if (overlay) {
+          overlay.style.background = `linear-gradient(90deg, rgba(0,0,0,${seg.furlDepth * 0.001}) 0%, rgba(255,255,255,${seg.furlDepth * 0.0015}) 50%, rgba(0,0,0,${seg.furlDepth * 0.0005}) 100%)`
         }
       }
     }
@@ -195,6 +202,7 @@ export function FurlingRiffle({ pageCount, direction, onComplete }: FurlingRiffl
                   backfaceVisibility: 'hidden',
                 }}
               >
+                {/* page surface */}
                 <Box
                   sx={{
                     position: 'absolute',
@@ -205,13 +213,6 @@ export function FurlingRiffle({ pageCount, direction, onComplete }: FurlingRiffl
                       linear-gradient(rgba(0,0,0,0.015) 1px, transparent 1px)
                     `,
                     backgroundSize: '20px 20px',
-                    '&::after': {
-                      content: '""',
-                      position: 'absolute',
-                      inset: 0,
-                      background: 'transparent',
-                      pointerEvents: 'none',
-                    },
                   }}
                 >
                   {/* faint content lines on the middle segment */}
@@ -245,6 +246,14 @@ export function FurlingRiffle({ pageCount, direction, onComplete }: FurlingRiffl
                     </Box>
                   )}
                 </Box>
+                {/* depth overlay — replaces ::after pseudo for per-frame gradient updates */}
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    inset: 0,
+                    pointerEvents: 'none',
+                  }}
+                />
               </Box>
             ))}
           </Box>
