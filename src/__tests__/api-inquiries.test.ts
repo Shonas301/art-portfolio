@@ -11,12 +11,10 @@ vi.mock('@/lib/auth/config', () => ({
   authOptions: {},
 }))
 
-// mock supabase server client
+// tracks what gets inserted into supabase
 const mockInsert = vi.fn()
-const mockSelect = vi.fn()
-const mockSingle = vi.fn()
-const mockEq = vi.fn()
 
+// mock supabase server client
 vi.mock('@/lib/supabase/server', () => ({
   createClient: vi.fn(() =>
     Promise.resolve({
