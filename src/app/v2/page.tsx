@@ -109,8 +109,29 @@ function FlipBookContent() {
     }
   }, [dispatch, state.currentPageIndex])
 
-  // update URL hash when page changes (after initial load)
+  // sync URL hash to #resume when modal opens, restore page hash on close
   useEffect(() => {
+    if (state.resumeOpen) {
+      updateUrlHash('resume')
+    } else {
+      // restore page-based hash
+      const currentSection = getSectionAtPage(state.currentPageIndex)
+      if (currentSection) {
+        updateUrlHash(currentSection.id)
+      } else {
+        const nearestSection = [...sectionMappings]
+          .filter(s => s.physicalPage <= state.currentPageIndex)
+          .sort((a, b) => b.physicalPage - a.physicalPage)[0]
+        if (nearestSection) {
+          updateUrlHash(nearestSection.id)
+        }
+      }
+    }
+  }, [state.resumeOpen, state.currentPageIndex])
+
+  // update URL hash when page changes (skip if resume modal is open)
+  useEffect(() => {
+    if (state.resumeOpen) return
     // find the current section (if any) for the current page
     const currentSection = getSectionAtPage(state.currentPageIndex)
     if (currentSection) {
@@ -124,7 +145,7 @@ function FlipBookContent() {
         updateUrlHash(nearestSection.id)
       }
     }
-  }, [state.currentPageIndex])
+  }, [state.currentPageIndex, state.resumeOpen])
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {

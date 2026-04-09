@@ -12,10 +12,16 @@ interface LandingPageProps {
 }
 
 export function LandingPage({ title, data }: LandingPageProps) {
-  const [showHint, setShowHint] = useState(() => {
-    if (typeof window === 'undefined') return false
-    return !sessionStorage.getItem('flipbook-hint-dismissed')
-  })
+  // start false to match SSR, hydrate safely before showing hint
+  const [showHint, setShowHint] = useState(false)
+
+  // check sessionStorage on mount — avoids SSR/client mismatch
+  useEffect(() => {
+    const dismissed = sessionStorage.getItem('flipbook-hint-dismissed')
+    if (!dismissed) {
+      setShowHint(true) // eslint-disable-line react-hooks/set-state-in-effect
+    }
+  }, [])
 
   // persist dismissal to sessionStorage
   useEffect(() => {
@@ -26,12 +32,14 @@ export function LandingPage({ title, data }: LandingPageProps) {
 
   // fade out after 5 seconds
   useEffect(() => {
+    if (!showHint) return
     const timer = setTimeout(() => setShowHint(false), 5000)
     return () => clearTimeout(timer)
-  }, [])
+  }, [showHint])
 
   // dismiss on any user interaction
   useEffect(() => {
+    if (!showHint) return
     const dismiss = () => setShowHint(false)
     window.addEventListener('keydown', dismiss, { once: true })
     window.addEventListener('pointerdown', dismiss, { once: true })
@@ -39,7 +47,7 @@ export function LandingPage({ title, data }: LandingPageProps) {
       window.removeEventListener('keydown', dismiss)
       window.removeEventListener('pointerdown', dismiss)
     }
-  }, [])
+  }, [showHint])
 
   return (
     <Box
