@@ -31,6 +31,7 @@ export function GalleryGrid({ items, onItemClick, onInfoClick }: GalleryGridProp
         display: 'grid',
         gridTemplateColumns: {
           xs: '1fr',
+          sm: 'repeat(2, 1fr)',
           md: 'repeat(2, 1fr)',
           lg: 'repeat(3, 1fr)',
         },
@@ -84,7 +85,7 @@ export function GalleryGrid({ items, onItemClick, onInfoClick }: GalleryGridProp
                   src={item.thumbnail}
                   alt={item.title}
                   fill
-                  sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                  sizes="(max-width: 600px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 50vw, 33vw"
                   style={{ objectFit: 'cover' }}
                   loading={index < 3 ? 'eager' : 'lazy'}
                   priority={index < 3}
@@ -144,7 +145,7 @@ export function GalleryGrid({ items, onItemClick, onInfoClick }: GalleryGridProp
                 src={item.src}
                 alt={item.title}
                 fill
-                sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                sizes="(max-width: 600px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 50vw, 33vw"
                 style={{ objectFit: 'cover' }}
                 loading={index < 3 ? 'eager' : 'lazy'}
                 priority={index < 3}
@@ -196,6 +197,9 @@ export function GalleryGrid({ items, onItemClick, onInfoClick }: GalleryGridProp
                   flexShrink: 0,
                   bgcolor: '#9333ea',
                   color: 'white',
+                  // increase touch target to 44px on mobile for WCAG compliance
+                  minWidth: { xs: '44px', md: '32px' },
+                  minHeight: { xs: '44px', md: '32px' },
                   '&:hover': {
                     bgcolor: '#7e22ce',
                   },

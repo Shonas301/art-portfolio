@@ -275,7 +275,7 @@ function FlipBookContent() {
       <KeyboardHelpModal isOpen={helpOpen} onClose={() => setHelpOpen(false)} />
       <BoundaryFeedback />
 
-      {/* flip book container */}
+      {/* flip book container — xs height accounts for mobile nav bar (68px + safe area) */}
       <Box
         ref={containerRef}
         sx={{
@@ -283,7 +283,11 @@ function FlipBookContent() {
           top: { xs: '2.5%', md: '7.5%' },
           left: { xs: '2.5%', md: '7.5%' },
           width: { xs: '95%', md: '70%' },
-          height: { xs: '95%', md: '85%' },
+          height: {
+            xs: 'calc(95% - 76px)',
+            sm: 'calc(90% - 76px)',
+            md: '85%',
+          },
           perspective: '1200px',
           zIndex: 10,
         }}
@@ -348,7 +352,7 @@ function FlipBookContent() {
       <Box
         sx={{
           position: 'fixed',
-          bottom: '16px',
+          bottom: { xs: '80px', md: '16px' },
           left: '50%',
           transform: 'translateX(-50%)',
           zIndex: 20,

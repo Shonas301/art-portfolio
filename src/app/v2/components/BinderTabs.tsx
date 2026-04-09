@@ -18,6 +18,13 @@ export function BinderTabs() {
     dispatch({ type: 'OPEN_RESUME' })
   }
 
+  const handleKeyDown = (callback: () => void) => (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault()
+      callback()
+    }
+  }
+
   return (
     <Box
       sx={{
@@ -28,6 +35,8 @@ export function BinderTabs() {
         width: 0, // tabs extend beyond this
         zIndex: 2000,
         pointerEvents: 'none',
+        // hide on mobile — small colored slivers leak at viewport edge
+        display: { xs: 'none', md: 'block' },
       }}
     >
       {sectionMappings.map((section) => {
@@ -47,9 +56,9 @@ export function BinderTabs() {
 
         // vertical position - spread tabs across height, adjusted by page position
         // tabs should be at consistent vertical positions relative to book
-        const tabIndex = sectionMappings.findIndex(s => s.id === section.id)
+        const posIndex = sectionMappings.findIndex(s => s.id === section.id)
         const totalTabs = sectionMappings.length
-        const verticalPercent = 12 + (tabIndex * (76 / (totalTabs - 1))) // 12% to 88%
+        const verticalPercent = 12 + (posIndex * (76 / (totalTabs - 1))) // 12% to 88%
 
         // tab width - slightly shorter for deeper pages
         const tabWidth = isBehind ? 100 : 100 - depthInStack * 0.8
@@ -65,8 +74,16 @@ export function BinderTabs() {
             arrow
           >
             <Box
+              component="button"
               onClick={() => handleTabClick(physicalPage)}
+              onKeyDown={handleKeyDown(() => handleTabClick(physicalPage))}
+              aria-label={`jump to ${section.section}`}
+              aria-current={isActive ? 'true' : undefined}
               sx={{
+                // reset button defaults
+                border: 'none',
+                font: 'inherit',
+                padding: 0,
                 position: 'absolute',
                 right: 0,
                 top: `${verticalPercent}%`,
@@ -106,14 +123,21 @@ export function BinderTabs() {
                     : 'linear-gradient(90deg, rgba(0,0,0,0.15) 0%, transparent 100%)',
                   borderRadius: '0 0 0 0',
                 },
-                '&:hover': {
-                  width: `${tabWidth + 12}px`,
-                  boxShadow: isBehind
-                    ? '2px 2px 8px rgba(147, 51, 234, 0.3)'
-                    : isActive
-                      ? '4px 3px 14px rgba(236, 72, 153, 0.6)'
-                      : '3px 3px 12px rgba(147, 51, 234, 0.5)',
-                  opacity: isBehind ? 0.6 : 1,
+                // scope hover to pointer devices only
+                '@media (hover: hover)': {
+                  '&:hover': {
+                    width: `${tabWidth + 12}px`,
+                    boxShadow: isBehind
+                      ? '2px 2px 8px rgba(147, 51, 234, 0.3)'
+                      : isActive
+                        ? '4px 3px 14px rgba(236, 72, 153, 0.6)'
+                        : '3px 3px 12px rgba(147, 51, 234, 0.5)',
+                    opacity: isBehind ? 0.6 : 1,
+                  },
+                },
+                '&:focus-visible': {
+                  outline: '2px solid #7e22ce',
+                  outlineOffset: '2px',
                 },
               }}
             >
@@ -139,8 +163,16 @@ export function BinderTabs() {
       {/* resume tab - special, always visible at bottom */}
       <Tooltip title="open resume" placement="left" arrow>
         <Box
+          component="button"
           onClick={handleResumeClick}
+          onKeyDown={handleKeyDown(handleResumeClick)}
+          aria-label="open resume"
+          aria-pressed={state.resumeOpen ? 'true' : undefined}
           sx={{
+            // reset button defaults
+            border: 'none',
+            font: 'inherit',
+            padding: 0,
             position: 'absolute',
             right: 0,
             bottom: '8%',
@@ -171,11 +203,18 @@ export function BinderTabs() {
               width: '4px',
               background: 'linear-gradient(90deg, rgba(0,0,0,0.12) 0%, transparent 100%)',
             },
-            '&:hover': {
-              width: '112px',
-              boxShadow: state.resumeOpen
-                ? '4px 3px 14px rgba(251, 191, 36, 0.6)'
-                : '3px 3px 12px rgba(245, 158, 11, 0.5)',
+            // scope hover to pointer devices only
+            '@media (hover: hover)': {
+              '&:hover': {
+                width: '112px',
+                boxShadow: state.resumeOpen
+                  ? '4px 3px 14px rgba(251, 191, 36, 0.6)'
+                  : '3px 3px 12px rgba(245, 158, 11, 0.5)',
+              },
+            },
+            '&:focus-visible': {
+              outline: '2px solid #d97706',
+              outlineOffset: '2px',
             },
           }}
         >

@@ -28,6 +28,10 @@ export function CloudBackground() {
             backgroundPosition: '100% 50%',
           },
         },
+        // respect reduced motion preference
+        '@media (prefers-reduced-motion: reduce)': {
+          animation: 'none',
+        },
       }}
     >
       {/* artist name on background */}

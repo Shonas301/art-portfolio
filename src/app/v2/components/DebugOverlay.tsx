@@ -59,7 +59,9 @@ export function DebugOverlay() {
   }
 
   if (!state.debugMode) {
-    // show minimal debug controls when debug mode is off
+    // show only debug toggle when debug mode is off
+    // reduced motion toggle removed from user-facing UI — OS-level
+    // prefers-reduced-motion detection handles it automatically
     return (
       <Box
         sx={{
@@ -67,8 +69,6 @@ export function DebugOverlay() {
           bottom: 16,
           left: 16,
           zIndex: 10000,
-          display: 'flex',
-          gap: 1,
         }}
       >
         <IconButton
@@ -79,15 +79,6 @@ export function DebugOverlay() {
           sx={{ opacity: 0.5, '&:hover': { opacity: 1 } }}
         >
           <BugReportIcon fontSize="small" />
-        </IconButton>
-        <IconButton
-          size="sm"
-          variant="soft"
-          color={state.prefersReducedMotion ? 'success' : 'neutral'}
-          onClick={() => dispatch({ type: 'TOGGLE_REDUCED_MOTION' })}
-          sx={{ opacity: 0.5, '&:hover': { opacity: 1 } }}
-        >
-          <AccessibilityIcon fontSize="small" />
         </IconButton>
       </Box>
     )
@@ -116,6 +107,7 @@ export function DebugOverlay() {
           debug overlay
         </Typography>
         <Box sx={{ display: 'flex', gap: 1 }}>
+          {/* reduced motion toggle only visible in debug mode */}
           <IconButton
             size="sm"
             variant="soft"
