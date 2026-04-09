@@ -7,7 +7,7 @@ import Card from '@mui/joy/Card'
 import CardContent from '@mui/joy/CardContent'
 import Chip from '@mui/joy/Chip'
 import type { CodeData } from '../../data/portfolio-content'
-import { getYouTubeEmbedUrl } from '@/lib/youtube'
+import { getVideoEmbedUrl } from '@/lib/youtube'
 
 interface CodePageProps {
   title: string
@@ -62,9 +62,9 @@ export function CodePage({ title, data }: CodePageProps) {
               >
                 <Box
                   component="iframe"
-                  src={getYouTubeEmbedUrl(project.videoSrc) ?? undefined}
+                  src={getVideoEmbedUrl(project.videoSrc) ?? undefined}
                   title={project.title}
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media"
                   allowFullScreen
                   sx={{
                     width: '100%',

@@ -3,6 +3,9 @@ import type { GalleryItem } from '@/types/gallery'
 // flipbook physical model
 export const TOTAL_PAGES = 47
 
+// supabase storage base url for images
+const STORAGE_BASE = 'https://ztpvqdqngykfrtqzyddy.supabase.co/storage/v1/object/public/images'
+
 // page content types
 export type PageType = 'landing' | 'intro' | 'gallery' | 'code' | 'contact' | 'blank'
 
@@ -116,7 +119,7 @@ export const pageContent: PageContent[] = [
           longDescription: 'a comprehensive demonstration of character rigging and animation techniques in autodesk maya.',
           type: 'video',
           src: 'https://www.youtube.com/watch?v=bdrST1IbN3k',
-          thumbnail: '/output/frames/720p_s69_frame_0000.png',
+          thumbnail: `${STORAGE_BASE}/720p_s69_frame_0000.png`,
         },
         {
           id: 2,
@@ -124,8 +127,8 @@ export const pageContent: PageContent[] = [
           description: 'environment design study',
           longDescription: 'detailed 3d environment showcasing lighting, texturing, and composition principles.',
           type: 'image',
-          src: '/output/frames/1080p_s52043_frame_0001.png',
-          thumbnail: '/output/frames/1080p_s69_frame_0001.png',
+          src: `${STORAGE_BASE}/1080p_s52043_frame_0001.png`,
+          thumbnail: `${STORAGE_BASE}/1080p_s69_frame_0001.png`,
         },
         {
           id: 3,
@@ -133,8 +136,8 @@ export const pageContent: PageContent[] = [
           description: '3d character design',
           longDescription: 'original character design with detailed topology and texture work.',
           type: 'image',
-          src: '/output/frames/720p_s69_frame_0050.png',
-          thumbnail: '/output/frames/720p_s69_frame_0050.png',
+          src: `${STORAGE_BASE}/720p_s69_frame_0050.png`,
+          thumbnail: `${STORAGE_BASE}/720p_s69_frame_0050.png`,
         },
       ],
     } as GalleryData,
@@ -153,8 +156,8 @@ export const pageContent: PageContent[] = [
           description: 'concept art illustration',
           longDescription: 'digital painting exploring color theory and composition.',
           type: 'image',
-          src: '/output/frames/720p_s69_frame_0100.png',
-          thumbnail: '/output/frames/720p_s69_frame_0100.png',
+          src: `${STORAGE_BASE}/720p_s69_frame_0100.png`,
+          thumbnail: `${STORAGE_BASE}/720p_s69_frame_0100.png`,
         },
         {
           id: 5,
@@ -162,8 +165,8 @@ export const pageContent: PageContent[] = [
           description: 'character design sketch',
           longDescription: 'character design exploration with multiple iterations.',
           type: 'image',
-          src: '/output/frames/1080p_s52043_frame_0001.png',
-          thumbnail: '/output/frames/1080p_s52043_frame_0001.png',
+          src: `${STORAGE_BASE}/1080p_s52043_frame_0001.png`,
+          thumbnail: `${STORAGE_BASE}/1080p_s52043_frame_0001.png`,
         },
       ],
     } as GalleryData,
@@ -208,7 +211,7 @@ export const pageContent: PageContent[] = [
           longDescription: 'first animation in the pandy series, exploring character personality and movement.',
           type: 'video',
           src: 'https://www.youtube.com/watch?v=bdrST1IbN3k',
-          thumbnail: '/output/frames/720p_s69_frame_0000.png',
+          thumbnail: `${STORAGE_BASE}/720p_s69_frame_0000.png`,
         },
         {
           id: 7,
@@ -217,7 +220,7 @@ export const pageContent: PageContent[] = [
           longDescription: 'continued adventures of pandy with more complex animation sequences.',
           type: 'video',
           src: 'https://www.youtube.com/watch?v=bdrST1IbN3k',
-          thumbnail: '/output/frames/720p_s69_frame_0050.png',
+          thumbnail: `${STORAGE_BASE}/720p_s69_frame_0050.png`,
         },
       ],
     } as GalleryData,

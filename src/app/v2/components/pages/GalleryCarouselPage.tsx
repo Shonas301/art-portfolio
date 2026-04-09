@@ -9,7 +9,7 @@ import CloseIcon from '@mui/icons-material/Close'
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft'
 import ChevronRightIcon from '@mui/icons-material/ChevronRight'
 import type { GalleryData } from '../../data/portfolio-content'
-import { getYouTubeEmbedUrl } from '@/lib/youtube'
+import { getVideoEmbedUrl } from '@/lib/youtube'
 
 interface GalleryCarouselPageProps {
   title: string
@@ -113,9 +113,9 @@ export function GalleryCarouselPage({
             {item.type === 'video' ? (
               <Box
                 component="iframe"
-                src={getYouTubeEmbedUrl(item.src) ?? undefined}
+                src={getVideoEmbedUrl(item.src) ?? undefined}
                 title={item.title}
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media"
                 allowFullScreen
                 sx={{
                   width: '100%',

@@ -2,7 +2,7 @@
 // fetches from supabase when available, falls back to static content
 
 import type { GalleryItem } from '@/types/gallery'
-import type { Artwork, Section } from '@/lib/supabase/types'
+import type { Artwork, Section, SiteSetting } from '@/lib/supabase/types'
 import {
   pageContent,
   type PageContent,
@@ -13,7 +13,13 @@ import {
   type LandingData,
 } from '@/app/v2/data/portfolio-content'
 
-// check if supabase is configured
+// gallery_items joined with artworks via foreign key
+interface GalleryItemWithArtwork {
+  display_order: number
+  artworks: Artwork
+}
+
+// check if supabase env vars are present before attempting client creation
 function isSupabaseConfigured(): boolean {
   return !!(
     process.env.NEXT_PUBLIC_SUPABASE_URL &&
@@ -24,14 +30,13 @@ function isSupabaseConfigured(): boolean {
 // convert supabase artwork to gallery item format
 function artworkToGalleryItem(artwork: Artwork, index: number): GalleryItem {
   return {
-    id: index + 1, // preserve numeric id for compatibility
+    id: index + 1,
     title: artwork.title,
     description: artwork.description || '',
     longDescription: artwork.long_description || artwork.description || '',
     type: artwork.media_type === 'video' ? 'video' : 'image',
     src: artwork.cloudinary_url || artwork.external_url || '',
     thumbnail: artwork.thumbnail_url || artwork.cloudinary_url || '',
-    // extended fields
     materials: artwork.materials || undefined,
     dimensions: artwork.dimensions || undefined,
     year: artwork.year_created || undefined,
@@ -41,145 +46,152 @@ function artworkToGalleryItem(artwork: Artwork, index: number): GalleryItem {
   }
 }
 
-// fetch gallery data from api with static fallback
-export async function fetchGalleryData(sectionSlug: string): Promise<GalleryData | null> {
-  // fall back to static content if supabase not configured
-  if (!isSupabaseConfigured()) {
-    const staticPage = pageContent.find(p => p.id === sectionSlug)
-    if (staticPage?.type === 'gallery' && staticPage.data) {
-      return staticPage.data as GalleryData
-    }
-    return null
-  }
-
-  try {
-    const response = await fetch(`/api/sections/${sectionSlug}`, {
-      next: { revalidate: 60 }, // cache for 60 seconds
-    })
-
-    if (!response.ok) {
-      throw new Error('failed to fetch section')
-    }
-
-    const { data } = await response.json()
-    const section = data as Section & { artworks: Artwork[] }
-
-    if (!section.artworks?.length) {
-      // fall back to static if no artworks in db
-      const staticPage = pageContent.find(p => p.id === sectionSlug)
-      if (staticPage?.type === 'gallery' && staticPage.data) {
-        return staticPage.data as GalleryData
-      }
-      return null
-    }
-
-    return {
-      description: section.description || '',
-      items: section.artworks.map((artwork, index) =>
-        artworkToGalleryItem(artwork, index)
-      ),
-    }
-  } catch (error) {
-    console.error('error fetching gallery data:', error)
-    // fall back to static content
-    const staticPage = pageContent.find(p => p.id === sectionSlug)
-    if (staticPage?.type === 'gallery' && staticPage.data) {
-      return staticPage.data as GalleryData
-    }
-    return null
-  }
-}
-
-// fetch all page content with dynamic data merged in
-export async function fetchAllPageContent(): Promise<PageContent[]> {
-  // if supabase not configured, return static content
+// fetch all page content from supabase with static fallback
+// designed for client-side use in 'use client' components
+export async function fetchAllPageContentClient(): Promise<PageContent[]> {
   if (!isSupabaseConfigured()) {
     return pageContent
   }
 
   try {
+    // lazy import to avoid throwing when env vars are missing
+    const { getClient } = await import('@/lib/supabase/client')
+    const supabase = getClient()
+
     // fetch sections and settings in parallel
-    const [sectionsRes, settingsRes] = await Promise.all([
-      fetch('/api/sections', { next: { revalidate: 60 } }),
-      fetch('/api/settings', { next: { revalidate: 60 } }).catch(() => null),
+    const [sectionsResult, settingsResult] = await Promise.all([
+      supabase
+        .from('sections')
+        .select('*')
+        .order('display_order', { ascending: true }),
+      supabase
+        .from('site_settings')
+        .select('*'),
     ])
 
-    if (!sectionsRes.ok) {
+    if (sectionsResult.error) {
+      console.error('error fetching sections:', sectionsResult.error)
       return pageContent
     }
 
-    const { data: sections } = await sectionsRes.json()
-    const settings = settingsRes?.ok
-      ? (await settingsRes.json()).data
-      : null
+    const sections = sectionsResult.data as Section[]
+    const settings = settingsResult.data as SiteSetting[] | null
 
-    // merge dynamic content with static structure
+    // build a settings map keyed by settings key
+    const settingsMap: Record<string, unknown> = {}
+    if (settings) {
+      for (const s of settings) {
+        settingsMap[s.key] = s.value
+      }
+    }
+
+    // for each gallery section, fetch its artworks via gallery_items join
+    const gallerySections = sections.filter(s =>
+      ['3d-work', '2d-work', 'pandy-series'].includes(s.slug)
+    )
+
+    const galleryDataMap: Record<string, Artwork[]> = {}
+
+    if (gallerySections.length > 0) {
+      const galleryResults = await Promise.all(
+        gallerySections.map(section =>
+          supabase
+            .from('gallery_items')
+            .select('display_order, artworks (*)')
+            .eq('section_id', section.id)
+            .order('display_order', { ascending: true })
+        )
+      )
+
+      gallerySections.forEach((section, idx) => {
+        const result = galleryResults[idx]
+        if (!result.error && result.data) {
+          // cast join result — supabase types don't infer FK joins
+          const items = result.data as unknown as GalleryItemWithArtwork[]
+          galleryDataMap[section.slug] = items
+            .map(item => item.artworks)
+            .filter(Boolean)
+        }
+      })
+    }
+
+    // merge dynamic data into static page structure
     return pageContent.map(page => {
-      const section = sections?.find((s: Section) => s.slug === page.id)
+      const section = sections.find(s => s.slug === page.id)
 
       switch (page.type) {
-        case 'gallery':
-          if (section?.artworks?.length) {
+        case 'gallery': {
+          const artworks = galleryDataMap[page.id]
+          if (artworks?.length) {
             return {
               ...page,
               data: {
-                description: section.description || (page.data as GalleryData).description,
-                items: section.artworks.map((artwork: Artwork, index: number) =>
+                description: section?.description || (page.data as GalleryData).description,
+                items: artworks.map((artwork, index) =>
                   artworkToGalleryItem(artwork, index)
                 ),
               } as GalleryData,
             }
           }
           break
+        }
 
-        case 'intro':
-          if (settings?.intro) {
+        case 'intro': {
+          const introSettings = settingsMap['intro'] as Record<string, string> | undefined
+          if (introSettings) {
             return {
               ...page,
               data: {
                 ...(page.data as IntroData),
-                ...settings.intro,
+                ...introSettings,
               } as IntroData,
             }
           }
           break
+        }
 
-        case 'contact':
-          if (settings?.contact) {
+        case 'contact': {
+          const contactSettings = settingsMap['contact'] as Record<string, string> | undefined
+          if (contactSettings) {
             return {
               ...page,
               data: {
                 ...(page.data as ContactData),
-                ...settings.contact,
+                ...contactSettings,
               } as ContactData,
             }
           }
           break
+        }
 
-        case 'code':
-          if (settings?.code) {
+        case 'code': {
+          const codeSettings = settingsMap['code'] as Record<string, unknown> | undefined
+          if (codeSettings) {
             return {
               ...page,
               data: {
                 ...(page.data as CodeData),
-                ...settings.code,
+                ...codeSettings,
               } as CodeData,
             }
           }
           break
+        }
 
-        case 'landing':
-          if (settings?.landing) {
+        case 'landing': {
+          const landingSettings = settingsMap['landing'] as Record<string, string> | undefined
+          if (landingSettings) {
             return {
               ...page,
-              title: settings.landing.title || page.title,
+              title: landingSettings.title || page.title,
               data: {
                 ...(page.data as LandingData),
-                ...settings.landing,
+                ...landingSettings,
               } as LandingData,
             }
           }
           break
+        }
       }
 
       return page
@@ -187,14 +199,5 @@ export async function fetchAllPageContent(): Promise<PageContent[]> {
   } catch (error) {
     console.error('error fetching page content:', error)
     return pageContent
-  }
-}
-
-// client-side hook for fetching gallery data
-export function useGalleryData(sectionSlug: string) {
-  // this is a simple implementation - for production you'd use swr or react-query
-  // the actual hooks are in src/hooks/useArtworks.ts and useSections.ts
-  return {
-    fallbackData: pageContent.find(p => p.id === sectionSlug)?.data as GalleryData | undefined,
   }
 }

@@ -1,19 +1,22 @@
 'use client'
 
-import { memo, useMemo } from 'react'
+import { memo, useMemo, useState, useEffect } from 'react'
 import Box from '@mui/joy/Box'
+import CircularProgress from '@mui/joy/CircularProgress'
 import { useFlipBook } from '../context/FlipBookContext'
 import {
   TOTAL_PAGES,
   sectionMappings,
-  pageContent,
+  pageContent as staticContent,
 } from '../data/portfolio-content'
+import { fetchAllPageContentClient } from '@/lib/content/dynamic-content'
+import { ErrorBoundary } from './ErrorBoundary'
 import { LandingPage } from './pages/LandingPage'
 import { IntroPage } from './pages/IntroPage'
 import { GalleryGridPage } from './pages/GalleryGridPage'
 import { CodePage } from './pages/CodePage'
 import { ContactPage } from './pages/ContactPage'
-import type { LandingData, IntroData, GalleryData, CodeData, ContactData } from '../data/portfolio-content'
+import type { PageContent, LandingData, IntroData, GalleryData, CodeData, ContactData } from '../data/portfolio-content'
 
 const Z_LAYERS = {
   UNFLIPPED_STACK_BASE: 500,
@@ -33,7 +36,7 @@ const sectionToContentIndex: Record<string, number> = {
   'contact': 6,
 }
 
-function renderPageContent(physicalPage: number) {
+function renderPageContent(physicalPage: number, content: PageContent[]) {
   const section = sectionMappings.find(s => s.physicalPage === physicalPage)
 
   if (!section) {
@@ -55,19 +58,21 @@ function renderPageContent(physicalPage: number) {
   }
 
   const contentIndex = sectionToContentIndex[section.id]
-  const content = pageContent[contentIndex]
+  const pageData = content[contentIndex]
 
-  switch (content.type) {
+  if (!pageData) return null
+
+  switch (pageData.type) {
     case 'landing':
-      return <LandingPage title={content.title} data={content.data as LandingData} />
+      return <LandingPage title={pageData.title} data={pageData.data as LandingData} />
     case 'intro':
-      return <IntroPage title={content.title} data={content.data as IntroData} />
+      return <IntroPage title={pageData.title} data={pageData.data as IntroData} />
     case 'gallery':
-      return <GalleryGridPage title={content.title} data={content.data as GalleryData} />
+      return <GalleryGridPage title={pageData.title} data={pageData.data as GalleryData} />
     case 'code':
-      return <CodePage title={content.title} data={content.data as CodeData} />
+      return <CodePage title={pageData.title} data={pageData.data as CodeData} />
     case 'contact':
-      return <ContactPage title={content.title} data={content.data as ContactData} />
+      return <ContactPage title={pageData.title} data={pageData.data as ContactData} />
     default:
       return null
   }
@@ -76,6 +81,33 @@ function renderPageContent(physicalPage: number) {
 export const PageStack = memo(function PageStack() {
   const { state } = useFlipBook()
   const { currentPageIndex } = state
+
+  // start with static content, replace with dynamic on fetch
+  const [content, setContent] = useState<PageContent[]>(staticContent)
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    let cancelled = false
+
+    fetchAllPageContentClient()
+      .then(data => {
+        if (!cancelled) {
+          setContent(data)
+        }
+      })
+      .catch(err => {
+        console.error('failed to load dynamic content, using static fallback:', err)
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setIsLoading(false)
+        }
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   const pagesAhead = TOTAL_PAGES - currentPageIndex - 1
 
@@ -157,7 +189,29 @@ export const PageStack = memo(function PageStack() {
             },
           }}
         >
-          {renderPageContent(currentPageIndex)}
+          {isLoading ? (
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                height: '100%',
+                minHeight: '200px',
+              }}
+            >
+              <CircularProgress
+                size="lg"
+                sx={{
+                  '--CircularProgress-trackColor': 'rgba(0,0,0,0.05)',
+                  '--CircularProgress-progressColor': '#c8c4bc',
+                }}
+              />
+            </Box>
+          ) : (
+            <ErrorBoundary>
+              {renderPageContent(currentPageIndex, content)}
+            </ErrorBoundary>
+          )}
         </Box>
       </Box>
     </>
