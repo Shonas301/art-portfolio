@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import Box from '@mui/joy/Box'
 import Typography from '@mui/joy/Typography'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -14,40 +14,42 @@ interface LandingPageProps {
 export function LandingPage({ title, data }: LandingPageProps) {
   // start false to match SSR, hydrate safely before showing hint
   const [showHint, setShowHint] = useState(false)
+  const wasShown = useRef(false)
 
   // check sessionStorage on mount — avoids SSR/client mismatch
   useEffect(() => {
     const dismissed = sessionStorage.getItem('flipbook-hint-dismissed')
     if (!dismissed) {
       setShowHint(true) // eslint-disable-line react-hooks/set-state-in-effect
+      wasShown.current = true
     }
   }, [])
 
-  // persist dismissal to sessionStorage
-  useEffect(() => {
-    if (!showHint && typeof window !== 'undefined') {
+  const dismissHint = useCallback(() => {
+    setShowHint(false)
+    // only persist if hint was actually shown this session
+    if (wasShown.current) {
       sessionStorage.setItem('flipbook-hint-dismissed', 'true')
     }
-  }, [showHint])
+  }, [])
 
   // fade out after 5 seconds
   useEffect(() => {
     if (!showHint) return
-    const timer = setTimeout(() => setShowHint(false), 5000)
+    const timer = setTimeout(dismissHint, 5000)
     return () => clearTimeout(timer)
-  }, [showHint])
+  }, [showHint, dismissHint])
 
   // dismiss on any user interaction
   useEffect(() => {
     if (!showHint) return
-    const dismiss = () => setShowHint(false)
-    window.addEventListener('keydown', dismiss, { once: true })
-    window.addEventListener('pointerdown', dismiss, { once: true })
+    window.addEventListener('keydown', dismissHint, { once: true })
+    window.addEventListener('pointerdown', dismissHint, { once: true })
     return () => {
-      window.removeEventListener('keydown', dismiss)
-      window.removeEventListener('pointerdown', dismiss)
+      window.removeEventListener('keydown', dismissHint)
+      window.removeEventListener('pointerdown', dismissHint)
     }
-  }, [showHint])
+  }, [showHint, dismissHint])
 
   return (
     <Box
