@@ -18,43 +18,46 @@ export function CloudBackground() {
   }, [])
 
   return (
-    <Box
-      sx={{
-        position: 'fixed',
-        inset: 0,
-        zIndex: 0,
-        background: `linear-gradient(135deg,
-          #fdf2f8 0%,
-          #fae8ff 20%,
-          #ddd6fe 40%,
-          #bfdbfe 60%,
-          #e0e7ff 80%,
-          #fdf2f8 100%
-        )`,
-        backgroundSize: '200% 200%',
-        animation: 'cloudMove 20s ease infinite',
-        animationPlayState: paused ? 'paused' : 'running',
-        '@keyframes cloudMove': {
-          '0%, 100%': {
-            backgroundPosition: '0% 50%',
-          },
-          '50%': {
-            backgroundPosition: '100% 50%',
-          },
-        },
-        // respect reduced motion preference
-        '@media (prefers-reduced-motion: reduce)': {
-          animation: 'none',
-        },
-      }}
-    >
-      {/* artist name on background — z-index above FlippedPagesStack (100) */}
+    <>
       <Box
         sx={{
-          position: 'absolute',
+          position: 'fixed',
+          inset: 0,
+          zIndex: 0,
+          background: `linear-gradient(135deg,
+            #fdf2f8 0%,
+            #fae8ff 20%,
+            #ddd6fe 40%,
+            #bfdbfe 60%,
+            #e0e7ff 80%,
+            #fdf2f8 100%
+          )`,
+          backgroundSize: '200% 200%',
+          animation: 'cloudMove 20s ease infinite',
+          animationPlayState: paused ? 'paused' : 'running',
+          '@keyframes cloudMove': {
+            '0%, 100%': {
+              backgroundPosition: '0% 50%',
+            },
+            '50%': {
+              backgroundPosition: '100% 50%',
+            },
+          },
+          // respect reduced motion preference
+          '@media (prefers-reduced-motion: reduce)': {
+            animation: 'none',
+          },
+        }}
+      />
+
+      {/* artist name — own stacking context above flipped pages (z-index 100 in book) */}
+      <Box
+        sx={{
+          position: 'fixed',
           top: { xs: 20, md: 32 },
           left: { xs: 20, md: 40 },
-          zIndex: 150,
+          zIndex: 15,
+          pointerEvents: 'none',
         }}
       >
         <Typography
@@ -74,6 +77,6 @@ export function CloudBackground() {
           christina shi
         </Typography>
       </Box>
-    </Box>
+    </>
   )
 }
