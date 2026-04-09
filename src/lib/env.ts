@@ -37,15 +37,21 @@ export const server = {
 } as const;
 
 // -- public env vars (safe for client bundle) --
+// next.js only inlines NEXT_PUBLIC_ vars when accessed as literal
+// process.env.NEXT_PUBLIC_X — dynamic process.env[key] won't work client-side
 
 export const client = {
   get supabaseUrl() {
-    return required('NEXT_PUBLIC_SUPABASE_URL');
+    const val = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    if (!val) throw new Error('missing required environment variable: NEXT_PUBLIC_SUPABASE_URL');
+    return val;
   },
   get supabaseAnonKey() {
-    return required('NEXT_PUBLIC_SUPABASE_ANON_KEY');
+    const val = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    if (!val) throw new Error('missing required environment variable: NEXT_PUBLIC_SUPABASE_ANON_KEY');
+    return val;
   },
   get cloudinaryCloudName() {
-    return optional('NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME');
+    return process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME ?? '';
   },
 } as const;
