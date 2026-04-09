@@ -60,11 +60,12 @@ function createMockRequest(body: unknown): Request {
 }
 
 // import after mocks are set up
-const { POST } = await import('@/app/api/inquiries/route')
+const { POST, _testResetRateLimit } = await import('@/app/api/inquiries/route')
 
 describe('POST /api/inquiries', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    _testResetRateLimit()
   })
 
   it('returns 201 for valid submission', async () => {

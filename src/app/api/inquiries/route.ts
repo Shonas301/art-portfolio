@@ -21,6 +21,8 @@ const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 // -- rate limiting --
 // in-memory store: ip -> array of request timestamps
 const rateLimitMap = new Map<string, number[]>();
+// exported for test cleanup
+export const _testResetRateLimit = () => rateLimitMap.clear();
 const RATE_LIMIT_WINDOW_MS = 60 * 1000; // 1 minute
 const RATE_LIMIT_MAX_REQUESTS = 5;
 

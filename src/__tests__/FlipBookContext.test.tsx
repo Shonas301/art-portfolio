@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { renderHook, act } from '@testing-library/react'
 import { FlipBookProvider, useFlipBook } from '@/app/v2/context/FlipBookContext'
 import { TOTAL_PAGES } from '@/app/v2/data/portfolio-content'
