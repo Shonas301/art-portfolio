@@ -3,6 +3,7 @@
 import { memo, useMemo, useState, useEffect } from 'react'
 import Box from '@mui/joy/Box'
 import CircularProgress from '@mui/joy/CircularProgress'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useFlipBook } from '../context/FlipBookContext'
 import {
   TOTAL_PAGES,
@@ -80,7 +81,7 @@ function renderPageContent(physicalPage: number, content: PageContent[]) {
 
 export const PageStack = memo(function PageStack() {
   const { state } = useFlipBook()
-  const { currentPageIndex } = state
+  const { currentPageIndex, prefersReducedMotion } = state
 
   // start with static content, replace with dynamic on fetch
   const [content, setContent] = useState<PageContent[]>(staticContent)
@@ -152,6 +153,15 @@ export const PageStack = memo(function PageStack() {
     })
   }, [currentPageIndex, pagesAhead])
 
+  // entrance animation variants — subtle fade-in after page flip
+  const contentVariants = prefersReducedMotion
+    ? { initial: {}, animate: {}, exit: {} }
+    : {
+        initial: { opacity: 0 },
+        animate: { opacity: 1 },
+        exit: { opacity: 0 },
+      }
+
   return (
     <>
       {edgeElements}
@@ -191,7 +201,19 @@ export const PageStack = memo(function PageStack() {
           }}
         >
           <ErrorBoundary>
-            {renderPageContent(currentPageIndex, content)}
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={currentPageIndex}
+                variants={contentVariants}
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                transition={{ duration: prefersReducedMotion ? 0 : 0.25, ease: 'easeOut' }}
+                style={{ height: '100%' }}
+              >
+                {renderPageContent(currentPageIndex, content)}
+              </motion.div>
+            </AnimatePresence>
           </ErrorBoundary>
 
           {/* subtle loading indicator while supabase data loads */}

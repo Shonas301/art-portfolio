@@ -259,6 +259,14 @@ function FlipBookContent() {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [state.currentPageIndex, state.isFlipping, state.isEngaged, state.isBookFlipped, state.isBookFlipping, dispatch])
 
+  // book entrance animation — subtle scale-up with fade
+  const bookEntranceVariants = state.prefersReducedMotion
+    ? { initial: {}, animate: {} }
+    : {
+        initial: { opacity: 0, scale: 0.95 },
+        animate: { opacity: 1, scale: 1 },
+      }
+
   return (
     <Box
       sx={{
@@ -276,77 +284,90 @@ function FlipBookContent() {
       <BoundaryFeedback />
 
       {/* flip book container — xs height accounts for mobile nav bar (68px + safe area) */}
-      <Box
-        ref={containerRef}
-        sx={{
+      <motion.div
+        variants={bookEntranceVariants}
+        initial="initial"
+        animate="animate"
+        transition={{
+          duration: state.prefersReducedMotion ? 0 : 0.4,
+          ease: [0.4, 0, 0.2, 1],
+        }}
+        style={{
           position: 'absolute',
-          top: { xs: '2.5%', md: '7.5%' },
-          left: { xs: '2.5%', md: '7.5%' },
-          width: { xs: '95%', md: '70%' },
-          height: {
-            xs: 'calc(95% - 76px)',
-            sm: 'calc(90% - 76px)',
-            md: '85%',
-          },
-          perspective: '1200px',
-          zIndex: 10,
         }}
       >
-        <motion.div
-          style={{
-            position: 'relative',
-            width: '100%',
-            height: '100%',
-            transformStyle: 'preserve-3d',
-          }}
-          animate={{
-            rotateY: state.isBookFlipped ? 180 : 0,
-          }}
-          transition={{
-            duration: state.prefersReducedMotion ? 0 : 0.8,
-            ease: [0.4, 0, 0.2, 1],
-          }}
-          onAnimationComplete={() => {
-            if (state.isBookFlipping) {
-              dispatch({ type: 'BOOK_FLIP_COMPLETE' })
-            }
+        <Box
+          ref={containerRef}
+          sx={{
+            position: 'fixed',
+            top: { xs: '2.5%', md: '7.5%' },
+            left: { xs: '2.5%', md: '7.5%' },
+            width: { xs: '95%', md: '70%' },
+            height: {
+              xs: 'calc(95% - 76px)',
+              sm: 'calc(90% - 76px)',
+              md: '85%',
+            },
+            perspective: '1200px',
+            zIndex: 10,
           }}
         >
-          {/* front of book */}
-          <Box
-            sx={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
+          <motion.div
+            style={{
+              position: 'relative',
               width: '100%',
               height: '100%',
-              backfaceVisibility: 'hidden',
+              transformStyle: 'preserve-3d',
+            }}
+            animate={{
+              rotateY: state.isBookFlipped ? 180 : 0,
+            }}
+            transition={{
+              duration: state.prefersReducedMotion ? 0 : 0.8,
+              ease: [0.4, 0, 0.2, 1],
+            }}
+            onAnimationComplete={() => {
+              if (state.isBookFlipping) {
+                dispatch({ type: 'BOOK_FLIP_COMPLETE' })
+              }
             }}
           >
-            <FlippedPagesStack />
-            <PageStack />
+            {/* front of book */}
+            <Box
+              sx={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                backfaceVisibility: 'hidden',
+              }}
+            >
+              <FlippedPagesStack />
+              <PageStack />
 
-            {state.bendingPages.length > 0 && !state.prefersReducedMotion && (
-              <BendingPages bendingPages={state.bendingPages} direction={direction} />
-            )}
+              {state.bendingPages.length > 0 && !state.prefersReducedMotion && (
+                <BendingPages bendingPages={state.bendingPages} direction={direction} />
+              )}
 
-            {state.releasedPages.length > 0 && !state.prefersReducedMotion && (
-              <CascadingRelease
-                releasedPages={state.releasedPages}
-                onPageLanded={handlePageLanded}
-              />
-            )}
+              {state.releasedPages.length > 0 && !state.prefersReducedMotion && (
+                <CascadingRelease
+                  releasedPages={state.releasedPages}
+                  onPageLanded={handlePageLanded}
+                />
+              )}
 
-            {/* for keyboard/tab navigation */}
-            <FlippingPage />
+              {/* for keyboard/tab navigation */}
+              <FlippingPage />
 
-            <BinderTabs />
-          </Box>
+              <BinderTabs />
+            </Box>
 
-          {/* back of book - admin panel */}
-          <BookBack />
-        </motion.div>
-      </Box>
+            {/* back of book - admin panel */}
+            <BookBack />
+          </motion.div>
+        </Box>
+      </motion.div>
 
       {/* page indicator */}
       <Box

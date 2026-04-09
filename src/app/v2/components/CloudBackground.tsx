@@ -1,9 +1,22 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import Box from '@mui/joy/Box'
 import Typography from '@mui/joy/Typography'
 
 export function CloudBackground() {
+  // pause animation when document is hidden (tab switch, minimize)
+  const [paused, setPaused] = useState(false)
+
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      setPaused(document.hidden)
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
+  }, [])
+
   return (
     <Box
       sx={{
@@ -20,6 +33,7 @@ export function CloudBackground() {
         )`,
         backgroundSize: '200% 200%',
         animation: 'cloudMove 20s ease infinite',
+        animationPlayState: paused ? 'paused' : 'running',
         '@keyframes cloudMove': {
           '0%, 100%': {
             backgroundPosition: '0% 50%',
@@ -34,13 +48,13 @@ export function CloudBackground() {
         },
       }}
     >
-      {/* artist name on background */}
+      {/* artist name on background — z-index above FlippedPagesStack (100) */}
       <Box
         sx={{
           position: 'absolute',
           top: { xs: 20, md: 32 },
           left: { xs: 20, md: 40 },
-          zIndex: 1,
+          zIndex: 150,
         }}
       >
         <Typography

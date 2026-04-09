@@ -22,19 +22,33 @@ interface GalleryGridProps {
   onInfoClick?: (index: number) => void
 }
 
+// adaptive column layout — use 2 columns with larger cards for sparse sections
+function getGridColumns(itemCount: number) {
+  if (itemCount <= 2) {
+    return {
+      xs: '1fr',
+      sm: 'repeat(2, 1fr)',
+      md: 'repeat(2, 1fr)',
+      lg: 'repeat(2, 1fr)',
+    }
+  }
+  return {
+    xs: '1fr',
+    sm: 'repeat(2, 1fr)',
+    md: 'repeat(2, 1fr)',
+    lg: 'repeat(3, 1fr)',
+  }
+}
+
 export function GalleryGrid({ items, onItemClick, onInfoClick }: GalleryGridProps) {
   const videoRefs = useRef<{ [key: number]: HTMLVideoElement | null }>({})
+  const isSparse = items.length <= 2
 
   return (
     <Box
       sx={{
         display: 'grid',
-        gridTemplateColumns: {
-          xs: '1fr',
-          sm: 'repeat(2, 1fr)',
-          md: 'repeat(2, 1fr)',
-          lg: 'repeat(3, 1fr)',
-        },
+        gridTemplateColumns: getGridColumns(items.length),
         gap: 3,
       }}
     >
@@ -50,7 +64,8 @@ export function GalleryGrid({ items, onItemClick, onInfoClick }: GalleryGridProp
           <Box
             sx={{
               position: 'relative',
-              aspectRatio: '16/9',
+              // taller aspect ratio for sparse grids to fill the space
+              aspectRatio: isSparse ? '4/3' : '16/9',
               bgcolor: 'grey.200',
               overflow: 'hidden',
             }}
