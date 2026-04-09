@@ -36,6 +36,9 @@ export function BendingPages({ bendingPages, direction }: BendingPagesProps) {
     [bendingPages]
   )
 
+  // only apply willChange when there are active bending pages
+  const hasActivePages = bendingPages.length > 0
+
   return (
     <>
       {visiblePages.map((page, index) => (
@@ -44,6 +47,7 @@ export function BendingPages({ bendingPages, direction }: BendingPagesProps) {
           page={page}
           index={index}
           direction={direction}
+          useWillChange={hasActivePages}
         />
       ))}
     </>
@@ -54,12 +58,14 @@ interface BendingPageProps {
   page: BendingPage
   index: number
   direction: 'forward' | 'backward'
+  useWillChange: boolean
 }
 
 const MemoizedBendingPage = memo(function BendingPage({
   page,
   index,
   direction,
+  useWillChange,
 }: BendingPageProps) {
   const transform = getPageTransform(page.bendAmount, index, direction)
 
@@ -78,7 +84,7 @@ const MemoizedBendingPage = memo(function BendingPage({
         transformStyle: 'preserve-3d',
         transformOrigin: 'left center',
         zIndex: 9000 - index,
-        willChange: 'transform',
+        willChange: useWillChange ? 'transform' : 'auto',
       }}
     >
       <Box

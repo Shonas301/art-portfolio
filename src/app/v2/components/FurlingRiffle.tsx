@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback, useMemo } from 'react'
+import { useEffect, useRef, useCallback, useMemo } from 'react'
 import Box from '@mui/joy/Box'
 import {
   RIFFLE_CONFIG,
@@ -28,112 +28,12 @@ function getLayerCount(pageCount: number): number {
   return 7
 }
 
-interface PageLayerProps {
-  layerIndex: number
-  totalLayers: number
-  direction: 'forward' | 'backward'
-  progress: number // 0-1 for this specific layer
-  opacity: number
-}
-
-function PageLayer({ totalLayers, direction, progress, opacity, layerIndex }: PageLayerProps) {
-  // memoize segment transforms using shared utility
-  const segments = useMemo(() => {
-    return calculateSegmentTransforms(direction, progress, RIFFLE_CONFIG)
-  }, [progress, direction])
-
-  // calculate z-index based on layer position
-  const zIndex = 9999 + totalLayers - layerIndex
-
-  return (
-    <Box
-      sx={{
-        position: 'absolute',
-        inset: 0,
-        transformStyle: 'preserve-3d',
-        transformOrigin: 'left center',
-        opacity: opacity,
-        zIndex: zIndex,
-        pointerEvents: 'none',
-      }}
-    >
-      {segments.map((segment) => (
-        <Box
-          key={segment.index}
-          sx={{
-            position: 'absolute',
-            left: segment.left,
-            top: 0,
-            width: segment.width,
-            height: '100%',
-            transformStyle: 'preserve-3d',
-            transformOrigin: 'left center',
-            transform: `rotateY(${segment.flipAngle}deg) translateZ(${segment.furlDepth}px) rotateX(${segment.tiltAngle}deg)`,
-            backfaceVisibility: 'hidden',
-            willChange: 'transform',
-          }}
-        >
-          <Box
-            sx={{
-              position: 'absolute',
-              inset: 0,
-              backgroundColor: '#faf8f3',
-              backgroundImage: `
-                linear-gradient(90deg, rgba(0,0,0,0.015) 1px, transparent 1px),
-                linear-gradient(rgba(0,0,0,0.015) 1px, transparent 1px)
-              `,
-              backgroundSize: '20px 20px',
-              boxShadow: segment.furlDepth > 15
-                ? `0 ${segment.furlDepth * 0.12}px ${segment.furlDepth * 0.3}px rgba(0,0,0,${0.12 + segment.furlDepth * 0.0015})`
-                : 'none',
-              '&::after': {
-                content: '""',
-                position: 'absolute',
-                inset: 0,
-                background: `linear-gradient(90deg, rgba(0,0,0,${segment.furlDepth * 0.001}) 0%, rgba(255,255,255,${segment.furlDepth * 0.0015}) 50%, rgba(0,0,0,${segment.furlDepth * 0.0005}) 100%)`,
-                pointerEvents: 'none',
-              },
-            }}
-          >
-            {/* faint content lines */}
-            {segment.index === Math.floor(RIFFLE_CONFIG.segmentCount / 2) && (
-              <Box
-                sx={{
-                  position: 'absolute',
-                  top: '15%',
-                  left: 0,
-                  right: 0,
-                  height: '70%',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '8px',
-                  opacity: 0.08,
-                  overflow: 'hidden',
-                }}
-              >
-                {Array.from({ length: 6 }).map((_, lineIdx) => (
-                  <Box
-                    key={lineIdx}
-                    sx={{
-                      height: '4px',
-                      backgroundColor: '#888',
-                      borderRadius: '2px',
-                      width: '80%',
-                      marginLeft: '10%',
-                    }}
-                  />
-                ))}
-              </Box>
-            )}
-          </Box>
-        </Box>
-      ))}
-    </Box>
-  )
-}
-
 export function FurlingRiffle({ pageCount, direction, onComplete }: FurlingRiffleProps) {
-  const [globalProgress, setGlobalProgress] = useState(0)
+  const progressRef = useRef(0)
+  // refs for each layer's container element, keyed by layer index
+  // each layer has segmentCount segment refs inside it
+  const layerRefs = useRef<(HTMLDivElement | null)[]>([])
+  const bindingShadowRef = useRef<HTMLDivElement | null>(null)
 
   const layerCount = useMemo(() => getLayerCount(pageCount), [pageCount])
 
@@ -142,14 +42,72 @@ export function FurlingRiffle({ pageCount, direction, onComplete }: FurlingRiffl
     return Math.max(MIN_TOTAL_DURATION, Math.min(MAX_TOTAL_DURATION, rawDuration))
   }, [pageCount, layerCount])
 
-  // use ref-like callback to avoid stale closure
   const onCompleteRef = useCallback(() => {
     onComplete()
   }, [onComplete])
 
+  // apply transforms for all layers directly to DOM
+  const applyTransforms = useCallback((globalProgress: number) => {
+    for (let layerIdx = 0; layerIdx < layerCount; layerIdx++) {
+      const layerEl = layerRefs.current[layerIdx]
+      if (!layerEl) continue
+
+      // per-layer progress with stagger
+      const layerDelay = (layerIdx * STAGGER_DELAY) / totalDuration
+      const layerDuration = (totalDuration - layerCount * STAGGER_DELAY) / totalDuration
+      const layerStart = layerDelay
+      const layerProgress = Math.max(0, Math.min(1, (globalProgress - layerStart) / layerDuration))
+
+      // opacity envelope: fade in quickly, hold, fade out at end
+      let opacity = 1
+      if (layerProgress < 0.1) {
+        opacity = layerProgress / 0.1
+      } else if (layerProgress > 0.85) {
+        opacity = (1 - layerProgress) / 0.15
+      }
+      opacity = Math.max(0, Math.min(1, opacity))
+      layerEl.style.opacity = String(opacity)
+
+      // calculate segment transforms for this layer's progress
+      const segments = calculateSegmentTransforms(direction, layerProgress, RIFFLE_CONFIG)
+
+      // update each segment DOM node inside this layer
+      const segmentEls = layerEl.children
+      for (let segIdx = 0; segIdx < segments.length; segIdx++) {
+        const segEl = segmentEls[segIdx] as HTMLElement | undefined
+        if (!segEl) continue
+        const seg = segments[segIdx]
+        segEl.style.transform = `rotateY(${seg.flipAngle}deg) translateZ(${seg.furlDepth}px) rotateX(${seg.tiltAngle}deg)`
+
+        // update box shadow on inner surface
+        const surface = segEl.firstElementChild as HTMLElement | null
+        if (surface) {
+          surface.style.boxShadow = seg.furlDepth > 15
+            ? `0 ${seg.furlDepth * 0.12}px ${seg.furlDepth * 0.3}px rgba(0,0,0,${0.12 + seg.furlDepth * 0.0015})`
+            : 'none'
+        }
+      }
+    }
+
+    // update binding shadow
+    const bindingEl = bindingShadowRef.current
+    if (bindingEl) {
+      bindingEl.style.opacity = String(globalProgress < 0.85 ? 1 : 1 - (globalProgress - 0.85) / 0.15)
+    }
+  }, [direction, layerCount, totalDuration])
+
   useEffect(() => {
     let startTime: number | null = null
     let animationFrame: number
+
+    // set willChange at animation start for all segment elements
+    layerRefs.current.forEach((layerEl) => {
+      if (!layerEl) return
+      const children = layerEl.children
+      for (let i = 0; i < children.length; i++) {
+        ;(children[i] as HTMLElement).style.willChange = 'transform'
+      }
+    })
 
     const animate = (currentTime: number) => {
       if (startTime === null) startTime = currentTime
@@ -157,11 +115,20 @@ export function FurlingRiffle({ pageCount, direction, onComplete }: FurlingRiffl
       const elapsed = (currentTime - startTime) / 1000
       const newProgress = Math.min(elapsed / totalDuration, 1)
 
-      setGlobalProgress(newProgress)
+      progressRef.current = newProgress
+      applyTransforms(newProgress)
 
       if (newProgress < 1) {
         animationFrame = requestAnimationFrame(animate)
       } else {
+        // clear willChange on completion
+        layerRefs.current.forEach((layerEl) => {
+          if (!layerEl) return
+          const children = layerEl.children
+          for (let i = 0; i < children.length; i++) {
+            ;(children[i] as HTMLElement).style.willChange = 'auto'
+          }
+        })
         onCompleteRef()
       }
     }
@@ -172,34 +139,20 @@ export function FurlingRiffle({ pageCount, direction, onComplete }: FurlingRiffl
       if (animationFrame) {
         cancelAnimationFrame(animationFrame)
       }
+      // clean up willChange on unmount
+      layerRefs.current.forEach((layerEl) => {
+        if (!layerEl) return
+        const children = layerEl.children
+        for (let i = 0; i < children.length; i++) {
+          ;(children[i] as HTMLElement).style.willChange = 'auto'
+        }
+      })
     }
-  }, [totalDuration, onCompleteRef])
+  }, [totalDuration, onCompleteRef, applyTransforms])
 
-  // calculate per-layer progress and opacity
-  const layers = useMemo(() => {
-    return Array.from({ length: layerCount }, (_, i) => {
-      // each layer starts with a staggered delay
-      const layerDelay = (i * STAGGER_DELAY) / totalDuration
-      const layerDuration = (totalDuration - layerCount * STAGGER_DELAY) / totalDuration
-
-      const layerStart = layerDelay
-      const layerProgress = Math.max(0, Math.min(1, (globalProgress - layerStart) / layerDuration))
-
-      // opacity: fade in quickly, hold, fade out at end
-      let opacity = 1
-      if (layerProgress < 0.1) {
-        opacity = layerProgress / 0.1
-      } else if (layerProgress > 0.85) {
-        opacity = (1 - layerProgress) / 0.15
-      }
-
-      return {
-        index: i,
-        progress: layerProgress,
-        opacity: Math.max(0, Math.min(1, opacity)),
-      }
-    })
-  }, [globalProgress, layerCount, totalDuration])
+  // pre-calculate static layout values
+  const segmentCount = RIFFLE_CONFIG.segmentCount
+  const segmentWidth = 100 / segmentCount
 
   return (
     <Box
@@ -211,19 +164,96 @@ export function FurlingRiffle({ pageCount, direction, onComplete }: FurlingRiffl
         pointerEvents: 'none',
       }}
     >
-      {layers.map((layer) => (
-        <PageLayer
-          key={layer.index}
-          layerIndex={layer.index}
-          totalLayers={layerCount}
-          direction={direction}
-          progress={layer.progress}
-          opacity={layer.opacity}
-        />
-      ))}
+      {Array.from({ length: layerCount }, (_, layerIdx) => {
+        const zIndex = 9999 + layerCount - layerIdx
+
+        return (
+          <Box
+            key={layerIdx}
+            ref={(el: HTMLDivElement | null) => { layerRefs.current[layerIdx] = el }}
+            sx={{
+              position: 'absolute',
+              inset: 0,
+              transformStyle: 'preserve-3d',
+              transformOrigin: 'left center',
+              opacity: 0,
+              zIndex,
+              pointerEvents: 'none',
+            }}
+          >
+            {Array.from({ length: segmentCount }, (_, segIdx) => (
+              <Box
+                key={segIdx}
+                sx={{
+                  position: 'absolute',
+                  left: `${segIdx * segmentWidth}%`,
+                  top: 0,
+                  width: `${segmentWidth + 0.5}%`,
+                  height: '100%',
+                  transformStyle: 'preserve-3d',
+                  transformOrigin: 'left center',
+                  backfaceVisibility: 'hidden',
+                }}
+              >
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    inset: 0,
+                    backgroundColor: '#faf8f3',
+                    backgroundImage: `
+                      linear-gradient(90deg, rgba(0,0,0,0.015) 1px, transparent 1px),
+                      linear-gradient(rgba(0,0,0,0.015) 1px, transparent 1px)
+                    `,
+                    backgroundSize: '20px 20px',
+                    '&::after': {
+                      content: '""',
+                      position: 'absolute',
+                      inset: 0,
+                      background: 'transparent',
+                      pointerEvents: 'none',
+                    },
+                  }}
+                >
+                  {/* faint content lines on the middle segment */}
+                  {segIdx === Math.floor(segmentCount / 2) && (
+                    <Box
+                      sx={{
+                        position: 'absolute',
+                        top: '15%',
+                        left: 0,
+                        right: 0,
+                        height: '70%',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '8px',
+                        opacity: 0.08,
+                        overflow: 'hidden',
+                      }}
+                    >
+                      {Array.from({ length: 6 }).map((_, lineIdx) => (
+                        <Box
+                          key={lineIdx}
+                          sx={{
+                            height: '4px',
+                            backgroundColor: '#888',
+                            borderRadius: '2px',
+                            width: '80%',
+                            marginLeft: '10%',
+                          }}
+                        />
+                      ))}
+                    </Box>
+                  )}
+                </Box>
+              </Box>
+            ))}
+          </Box>
+        )
+      })}
 
       {/* binding shadow */}
       <Box
+        ref={bindingShadowRef}
         sx={{
           position: 'absolute',
           left: -8,
@@ -233,7 +263,6 @@ export function FurlingRiffle({ pageCount, direction, onComplete }: FurlingRiffl
           background: 'linear-gradient(90deg, transparent 0%, rgba(0,0,0,0.25) 50%, transparent 100%)',
           filter: 'blur(6px)',
           pointerEvents: 'none',
-          opacity: globalProgress < 0.85 ? 1 : 1 - (globalProgress - 0.85) / 0.15,
         }}
       />
     </Box>

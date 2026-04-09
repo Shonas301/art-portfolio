@@ -1,5 +1,6 @@
 'use client'
 
+import { memo, useMemo } from 'react'
 import Box from '@mui/joy/Box'
 import { useFlipBook } from '../context/FlipBookContext'
 import {
@@ -18,6 +19,9 @@ const Z_LAYERS = {
   UNFLIPPED_STACK_BASE: 500,
   CURRENT_PAGE: 600,
 } as const
+
+// max visible edge pages — deeper ones are fully occluded
+const MAX_VISIBLE_EDGES = 12
 
 const sectionToContentIndex: Record<string, number> = {
   'landing': 0,
@@ -69,51 +73,56 @@ function renderPageContent(physicalPage: number) {
   }
 }
 
-export function PageStack() {
+export const PageStack = memo(function PageStack() {
   const { state } = useFlipBook()
   const { currentPageIndex } = state
 
   const pagesAhead = TOTAL_PAGES - currentPageIndex - 1
 
+  // memoize edge elements — only recompute when currentPageIndex changes
+  const edgeElements = useMemo(() => {
+    const visibleCount = Math.min(pagesAhead, MAX_VISIBLE_EDGES)
+
+    return Array.from({ length: visibleCount }, (_, i) => {
+      const physicalPage = currentPageIndex + 1 + i
+      const distanceFromCurrent = i + 1
+      const edgeOffset = Math.min(distanceFromCurrent * 1.5, 40)
+
+      return (
+        <Box
+          key={`page-${physicalPage}`}
+          sx={{
+            position: 'absolute',
+            inset: 0,
+            backgroundColor: '#faf8f3',
+            backgroundImage: `
+              linear-gradient(90deg, rgba(0,0,0,0.02) 1px, transparent 1px),
+              linear-gradient(rgba(0,0,0,0.02) 1px, transparent 1px)
+            `,
+            backgroundSize: '20px 20px',
+            boxShadow: '-2px 0 8px rgba(0,0,0,0.15)',
+            borderRadius: '8px',
+            zIndex: Z_LAYERS.UNFLIPPED_STACK_BASE - distanceFromCurrent,
+            transform: `translateX(${edgeOffset}px)`,
+            '&::after': {
+              content: '""',
+              position: 'absolute',
+              right: 0,
+              top: 0,
+              bottom: 0,
+              width: '3px',
+              background: 'linear-gradient(90deg, #e8e5df 0%, #d8d5cf 100%)',
+              boxShadow: 'inset -1px 0 2px rgba(0,0,0,0.08)',
+            },
+          }}
+        />
+      )
+    })
+  }, [currentPageIndex, pagesAhead])
+
   return (
     <>
-      {Array.from({ length: pagesAhead }, (_, i) => {
-        const physicalPage = currentPageIndex + 1 + i
-        const distanceFromCurrent = i + 1
-        const edgeOffset = Math.min(distanceFromCurrent * 1.5, 40)
-
-        if (distanceFromCurrent > 30) return null
-
-        return (
-          <Box
-            key={`page-${physicalPage}`}
-            sx={{
-              position: 'absolute',
-              inset: 0,
-              backgroundColor: '#faf8f3',
-              backgroundImage: `
-                linear-gradient(90deg, rgba(0,0,0,0.02) 1px, transparent 1px),
-                linear-gradient(rgba(0,0,0,0.02) 1px, transparent 1px)
-              `,
-              backgroundSize: '20px 20px',
-              boxShadow: '-2px 0 8px rgba(0,0,0,0.15)',
-              borderRadius: '8px',
-              zIndex: Z_LAYERS.UNFLIPPED_STACK_BASE - distanceFromCurrent,
-              transform: `translateX(${edgeOffset}px)`,
-              '&::after': {
-                content: '""',
-                position: 'absolute',
-                right: 0,
-                top: 0,
-                bottom: 0,
-                width: '3px',
-                background: 'linear-gradient(90deg, #e8e5df 0%, #d8d5cf 100%)',
-                boxShadow: 'inset -1px 0 2px rgba(0,0,0,0.08)',
-              },
-            }}
-          />
-        )
-      })}
+      {edgeElements}
 
       <Box
         sx={{
@@ -153,4 +162,4 @@ export function PageStack() {
       </Box>
     </>
   )
-}
+})

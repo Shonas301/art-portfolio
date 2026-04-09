@@ -6,6 +6,9 @@ import { useFlipBook } from '../context/FlipBookContext'
 
 const Z_LAYER_FLIPPED_STACK = 100
 
+// only top layers contribute visually — deeper ones are fully occluded
+const MAX_VISIBLE_LAYERS = 8
+
 export function FlippedPagesStack() {
   const { state } = useFlipBook()
 
@@ -26,7 +29,7 @@ export function FlippedPagesStack() {
       }}
     >
       <AnimatePresence mode="popLayout">
-        {Array.from({ length: Math.min(flippedPageCount, 30) }, (_, i) => {
+        {Array.from({ length: Math.min(flippedPageCount, MAX_VISIBLE_LAYERS) }, (_, i) => {
           const pageIndex = flippedPageCount - 1 - i
           const stackPosition = flippedPageCount - pageIndex
           const isTopPage = stackPosition === 1

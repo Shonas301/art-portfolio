@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback, useMemo } from 'react'
+import { useEffect, useRef, useCallback } from 'react'
 import Box from '@mui/joy/Box'
 import {
   SINGLE_PAGE_CONFIG,
@@ -18,28 +18,82 @@ interface FurlingPageProps {
 }
 
 export function FurlingPage({ direction, onComplete }: FurlingPageProps) {
-  const [progress, setProgress] = useState(0)
+  // refs for direct DOM manipulation — no state, no re-renders
+  const progressRef = useRef(0)
+  const segmentRefs = useRef<(HTMLDivElement | null)[]>([])
+  const bindingShadowRef = useRef<HTMLDivElement | null>(null)
+  const bottomShadowRef = useRef<HTMLDivElement | null>(null)
 
-  // use ref to avoid stale closure in animation loop
   const onCompleteRef = useCallback(() => {
     onComplete()
   }, [onComplete])
+
+  // apply transforms directly to DOM nodes — bypasses React reconciliation
+  const applyTransforms = useCallback((progress: number) => {
+    const segments = calculateSegmentTransforms(direction, progress, SINGLE_PAGE_CONFIG)
+
+    segments.forEach((segment) => {
+      const el = segmentRefs.current[segment.index]
+      if (!el) return
+      el.style.transform = `rotateY(${segment.flipAngle}deg) translateZ(${segment.furlDepth}px) rotateX(${segment.tiltAngle}deg)`
+
+      // update box shadow on the inner surface element
+      const surface = el.firstElementChild as HTMLElement | null
+      if (surface) {
+        surface.style.boxShadow = segment.furlDepth > 20
+          ? `0 ${segment.furlDepth * 0.15}px ${segment.furlDepth * 0.4}px rgba(0,0,0,${0.15 + segment.furlDepth * 0.002})`
+          : 'none'
+      }
+    })
+
+    // update binding shadow opacity
+    const bindingEl = bindingShadowRef.current
+    if (bindingEl) {
+      const maxFurl = Math.max(...segments.map(s => s.furlDepth))
+      const shadowIntensity = 0.25 + (maxFurl / SINGLE_PAGE_CONFIG.maxFurlDepth) * 0.25
+      bindingEl.style.background = `linear-gradient(90deg, transparent 0%, rgba(0,0,0,${shadowIntensity * 0.6}) 50%, transparent 100%)`
+      bindingEl.style.opacity = String(progress < 0.8 ? 1 : 1 - (progress - 0.8) / 0.2)
+    }
+
+    // update bottom shadow
+    const bottomEl = bottomShadowRef.current
+    if (bottomEl) {
+      const maxFurl = Math.max(...segments.map(s => s.furlDepth))
+      if (maxFurl > 30) {
+        bottomEl.style.display = 'block'
+        bottomEl.style.background = `radial-gradient(ellipse at center, rgba(0,0,0,${maxFurl * 0.003}) 0%, transparent 70%)`
+        bottomEl.style.transform = `translateY(${maxFurl * 0.2}px)`
+      } else {
+        bottomEl.style.display = 'none'
+      }
+    }
+  }, [direction])
 
   useEffect(() => {
     let startTime: number | null = null
     let animationFrame: number
 
+    // set willChange at animation start
+    segmentRefs.current.forEach((el) => {
+      if (el) el.style.willChange = 'transform'
+    })
+
     const animate = (currentTime: number) => {
       if (startTime === null) startTime = currentTime
 
-      const elapsed = (currentTime - startTime) / 1000 // convert to seconds
+      const elapsed = (currentTime - startTime) / 1000
       const newProgress = Math.min(elapsed / TOTAL_DURATION, 1)
 
-      setProgress(newProgress)
+      progressRef.current = newProgress
+      applyTransforms(newProgress)
 
       if (newProgress < 1) {
         animationFrame = requestAnimationFrame(animate)
       } else {
+        // clear willChange on completion — free GPU layers
+        segmentRefs.current.forEach((el) => {
+          if (el) el.style.willChange = 'auto'
+        })
         onCompleteRef()
       }
     }
@@ -50,17 +104,16 @@ export function FurlingPage({ direction, onComplete }: FurlingPageProps) {
       if (animationFrame) {
         cancelAnimationFrame(animationFrame)
       }
+      // clean up willChange on unmount
+      segmentRefs.current.forEach((el) => {
+        if (el) el.style.willChange = 'auto'
+      })
     }
-  }, [onCompleteRef])
+  }, [onCompleteRef, applyTransforms])
 
-  // memoize segment calculations using shared utility
-  const segments = useMemo(() => {
-    return calculateSegmentTransforms(direction, progress, SINGLE_PAGE_CONFIG)
-  }, [progress, direction])
-
-  // calculate dynamic shadow based on current furl state
-  const maxFurl = Math.max(...segments.map(s => s.furlDepth))
-  const shadowIntensity = 0.25 + (maxFurl / SINGLE_PAGE_CONFIG.maxFurlDepth) * 0.25
+  // build segment elements once — transforms applied via refs
+  const segmentCount = SINGLE_PAGE_CONFIG.segmentCount
+  const segmentWidth = 100 / segmentCount
 
   return (
     <Box
@@ -83,22 +136,19 @@ export function FurlingPage({ direction, onComplete }: FurlingPageProps) {
           transformOrigin: 'left center',
         }}
       >
-        {segments.map((segment) => (
+        {Array.from({ length: segmentCount }, (_, i) => (
           <Box
-            key={segment.index}
+            key={i}
+            ref={(el: HTMLDivElement | null) => { segmentRefs.current[i] = el }}
             sx={{
               position: 'absolute',
-              left: segment.left,
+              left: `${i * segmentWidth}%`,
               top: 0,
-              width: segment.width,
+              width: `${segmentWidth + 0.5}%`,
               height: '100%',
               transformStyle: 'preserve-3d',
-              // each segment's transform origin is at its left edge for proper hinging
               transformOrigin: 'left center',
-              // combine: Y rotation for flip, Z translation for furl depth, X rotation for tilt
-              transform: `rotateY(${segment.flipAngle}deg) translateZ(${segment.furlDepth}px) rotateX(${segment.tiltAngle}deg)`,
               backfaceVisibility: 'hidden',
-              willChange: 'transform',
             }}
           >
             {/* page surface */}
@@ -112,16 +162,11 @@ export function FurlingPage({ direction, onComplete }: FurlingPageProps) {
                   linear-gradient(rgba(0,0,0,0.015) 1px, transparent 1px)
                 `,
                 backgroundSize: '20px 20px',
-                // shadow on the furled part
-                boxShadow: segment.furlDepth > 20
-                  ? `0 ${segment.furlDepth * 0.15}px ${segment.furlDepth * 0.4}px rgba(0,0,0,${0.15 + segment.furlDepth * 0.002})`
-                  : 'none',
                 // gradient to show depth on curved areas
                 '&::after': {
                   content: '""',
                   position: 'absolute',
                   inset: 0,
-                  background: `linear-gradient(90deg, rgba(0,0,0,${segment.furlDepth * 0.001}) 0%, rgba(255,255,255,${segment.furlDepth * 0.002}) 50%, rgba(0,0,0,${segment.furlDepth * 0.0005}) 100%)`,
                   pointerEvents: 'none',
                 },
               }}
@@ -132,35 +177,32 @@ export function FurlingPage({ direction, onComplete }: FurlingPageProps) {
 
       {/* shadow on the "binding" side */}
       <Box
+        ref={bindingShadowRef}
         sx={{
           position: 'absolute',
           left: -10,
           top: '5%',
           width: '25px',
           height: '90%',
-          background: `linear-gradient(90deg, transparent 0%, rgba(0,0,0,${shadowIntensity * 0.6}) 50%, transparent 100%)`,
           filter: 'blur(10px)',
           pointerEvents: 'none',
-          opacity: progress < 0.8 ? 1 : 1 - (progress - 0.8) / 0.2,
         }}
       />
 
       {/* bottom shadow for depth when furled */}
-      {maxFurl > 30 && (
-        <Box
-          sx={{
-            position: 'absolute',
-            left: '10%',
-            right: '10%',
-            bottom: -20,
-            height: '40px',
-            background: `radial-gradient(ellipse at center, rgba(0,0,0,${maxFurl * 0.003}) 0%, transparent 70%)`,
-            filter: 'blur(15px)',
-            pointerEvents: 'none',
-            transform: `translateY(${maxFurl * 0.2}px)`,
-          }}
-        />
-      )}
+      <Box
+        ref={bottomShadowRef}
+        sx={{
+          position: 'absolute',
+          left: '10%',
+          right: '10%',
+          bottom: -20,
+          height: '40px',
+          filter: 'blur(15px)',
+          pointerEvents: 'none',
+          display: 'none',
+        }}
+      />
     </Box>
   )
 }
