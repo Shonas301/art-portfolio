@@ -18,7 +18,7 @@ import ZoomOutIcon from '@mui/icons-material/ZoomOut'
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart'
 import EmailIcon from '@mui/icons-material/Email'
 import type { GalleryItem } from '@/types/gallery'
-import { getYouTubeEmbedUrl } from '@/lib/youtube'
+import { getVideoEmbedUrl } from '@/lib/youtube'
 
 // social share icon components (simple svg icons)
 function PinterestIcon() {
@@ -312,7 +312,7 @@ export function ArtworkDetailModal({
                   {item.type === 'video' ? (
                     <Box
                       component="iframe"
-                      src={getYouTubeEmbedUrl(item.src) ?? undefined}
+                      src={getVideoEmbedUrl(item.src) ?? undefined}
                       title={item.title}
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                       allowFullScreen

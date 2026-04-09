@@ -11,7 +11,7 @@ import Stack from '@mui/joy/Stack'
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft'
 import ChevronRightIcon from '@mui/icons-material/ChevronRight'
 import type { GalleryItem } from '@/types/gallery'
-import { getYouTubeEmbedUrl } from '@/lib/youtube'
+import { getVideoEmbedUrl } from '@/lib/youtube'
 
 interface GalleryModalProps {
   open: boolean
@@ -101,7 +101,7 @@ export function GalleryModal({ open, item, onClose, onPrevious, onNext }: Galler
               {item.type === 'video' ? (
                 <Box
                   component="iframe"
-                  src={getYouTubeEmbedUrl(item.src) ?? undefined}
+                  src={getVideoEmbedUrl(item.src) ?? undefined}
                   title={item.title}
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
