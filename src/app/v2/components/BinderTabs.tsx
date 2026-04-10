@@ -50,18 +50,16 @@ export function BinderTabs() {
         const pagesFromCurrent = Math.abs(physicalPage - state.currentPageIndex)
         const depthInStack = isBehind ? 0 : pagesFromCurrent
 
-        // tab sticks out from the page edge
-        // depth affects how far right the tab appears (follows page edge offset)
-        const pageEdgeOffset = isBehind ? 0 : Math.min(depthInStack * 1.5, 40)
+        // tab sticks out from the page edge with subtle depth cue
+        const pageEdgeOffset = isBehind ? 0 : Math.min(depthInStack * 0.5, 8)
 
-        // vertical position - spread tabs across height, adjusted by page position
-        // tabs should be at consistent vertical positions relative to book
+        // vertical position - spread tabs across height
         const posIndex = sectionMappings.findIndex(s => s.id === section.id)
         const totalTabs = sectionMappings.length
         const verticalPercent = 12 + (posIndex * (76 / (totalTabs - 1))) // 12% to 88%
 
-        // tab width - slightly shorter for deeper pages
-        const tabWidth = isBehind ? 100 : 100 - depthInStack * 0.8
+        // consistent tab width regardless of depth
+        const tabWidth = 100
 
         // opacity - flipped tabs are ghosted, deeper tabs fade slightly
         const tabOpacity = isBehind ? 0.35 : isCurrent ? 1 : Math.max(0.7, 1 - depthInStack * 0.015)
