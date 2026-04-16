@@ -83,6 +83,12 @@ export const PageStack = memo(function PageStack() {
   const { state } = useFlipBook()
   const { currentPageIndex, prefersReducedMotion } = state
 
+  // during a flip, show target content immediately — the flip overlay hides
+  // the transition, so when the overlay disappears the new content is ready
+  const displayPageIndex = state.isFlipping && state.targetPageIndex !== null
+    ? state.targetPageIndex
+    : currentPageIndex
+
   // start with static content, replace with dynamic on fetch
   const [content, setContent] = useState<PageContent[]>(staticContent)
   const [isFetching, setIsFetching] = useState(true)
@@ -110,14 +116,14 @@ export const PageStack = memo(function PageStack() {
     }
   }, [])
 
-  const pagesAhead = TOTAL_PAGES - currentPageIndex - 1
+  const pagesAhead = TOTAL_PAGES - displayPageIndex - 1
 
-  // memoize edge elements — only recompute when currentPageIndex changes
+  // memoize edge elements — only recompute when displayPageIndex changes
   const edgeElements = useMemo(() => {
     const visibleCount = Math.min(pagesAhead, MAX_VISIBLE_EDGES)
 
     return Array.from({ length: visibleCount }, (_, i) => {
-      const physicalPage = currentPageIndex + 1 + i
+      const physicalPage = displayPageIndex + 1 + i
       const distanceFromCurrent = i + 1
       const edgeOffset = Math.min(distanceFromCurrent * 1.5, 40)
 
@@ -151,7 +157,7 @@ export const PageStack = memo(function PageStack() {
         />
       )
     })
-  }, [currentPageIndex, pagesAhead])
+  }, [displayPageIndex, pagesAhead])
 
   // entrance animation variants — subtle fade-in after page flip
   const contentVariants = prefersReducedMotion
@@ -203,7 +209,7 @@ export const PageStack = memo(function PageStack() {
           <ErrorBoundary>
             <AnimatePresence mode="wait">
               <motion.div
-                key={currentPageIndex}
+                key={displayPageIndex}
                 variants={contentVariants}
                 initial="initial"
                 animate="animate"
@@ -211,7 +217,7 @@ export const PageStack = memo(function PageStack() {
                 transition={{ duration: prefersReducedMotion ? 0 : 0.25, ease: 'easeOut' }}
                 style={{ height: '100%' }}
               >
-                {renderPageContent(currentPageIndex, content)}
+                {renderPageContent(displayPageIndex, content)}
               </motion.div>
             </AnimatePresence>
           </ErrorBoundary>
