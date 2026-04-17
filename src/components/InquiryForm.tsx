@@ -158,7 +158,7 @@ export function InquiryForm({ artworkId, artworkTitle, onSuccess }: InquiryFormP
         }}
       >
         <CheckCircleIcon sx={{ fontSize: 64, color: '#10b981', mb: 2 }} />
-        <Typography level="h4" sx={{ mb: 1, color: '#000000' }}>
+        <Typography level="h4" sx={{ mb: 1, color: '#111827' }}>
           message sent!
         </Typography>
         <Typography level="body-md" sx={{ color: '#525252' }}>

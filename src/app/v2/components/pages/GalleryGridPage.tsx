@@ -131,7 +131,7 @@ export function GalleryGridPage({ title, data }: GalleryGridPageProps) {
           sx={{
             fontSize: { xs: '2rem', md: '3rem' },
             fontWeight: 700,
-            color: '#000000',
+            color: '#111827',
             textTransform: 'lowercase',
           }}
         >

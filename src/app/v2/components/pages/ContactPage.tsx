@@ -40,7 +40,7 @@ export function ContactPage({ title, data }: ContactPageProps) {
           sx={{
             fontSize: { xs: '1.75rem', md: '2.5rem' },
             fontWeight: 700,
-            color: '#000000',
+            color: '#111827',
             textTransform: 'lowercase',
           }}
         >

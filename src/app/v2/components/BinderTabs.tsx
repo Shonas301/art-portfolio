@@ -89,22 +89,22 @@ export function BinderTabs() {
                 width: `${tabWidth}px`,
                 height: '32px',
                 background: isBehind
-                  ? 'linear-gradient(135deg, #a78bfa 0%, #c4b5fd 100%)' // lighter/desaturated for flipped
+                  ? '#d6d2c8' // chrome-behind neutral for flipped
                   : isActive
-                    ? 'linear-gradient(135deg, #ec4899 0%, #f472b6 100%)'
-                    : 'linear-gradient(135deg, #9333ea 0%, #a855f7 100%)',
+                    ? '#b45309' // amber accent — WCAG AA white text
+                    : '#e8e5df', // neutral chrome
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'flex-end',
                 paddingRight: '10px',
                 borderRadius: '0 6px 6px 0',
-                transition: 'all 0.25s ease',
+                transition: 'box-shadow 0.25s ease, opacity 0.25s ease, width 0.25s ease',
                 boxShadow: isBehind
-                  ? '1px 1px 4px rgba(147, 51, 234, 0.15)'
+                  ? '1px 1px 4px rgba(0, 0, 0, 0.05)'
                   : isActive
-                    ? '3px 2px 10px rgba(236, 72, 153, 0.5), inset 0 1px 0 rgba(255,255,255,0.2)'
-                    : `2px 2px 8px rgba(147, 51, 234, ${0.35 - depthInStack * 0.008})`,
+                    ? '3px 2px 10px rgba(180, 83, 9, 0.35), inset 0 1px 0 rgba(255,255,255,0.2)'
+                    : `2px 2px 8px rgba(0, 0, 0, ${0.08 - depthInStack * 0.002})`,
                 pointerEvents: 'auto',
                 opacity: tabOpacity,
                 zIndex: isBehind ? 1 : TOTAL_PAGES - physicalPage,
@@ -117,8 +117,8 @@ export function BinderTabs() {
                   bottom: 0,
                   width: '4px',
                   background: isBehind
-                    ? 'linear-gradient(90deg, rgba(0,0,0,0.08) 0%, transparent 100%)'
-                    : 'linear-gradient(90deg, rgba(0,0,0,0.15) 0%, transparent 100%)',
+                    ? 'linear-gradient(90deg, rgba(0,0,0,0.06) 0%, transparent 100%)'
+                    : 'linear-gradient(90deg, rgba(0,0,0,0.12) 0%, transparent 100%)',
                   borderRadius: '0 0 0 0',
                 },
                 // scope hover to pointer devices only
@@ -126,28 +126,28 @@ export function BinderTabs() {
                   '&:hover': {
                     width: `${tabWidth + 12}px`,
                     boxShadow: isBehind
-                      ? '2px 2px 8px rgba(147, 51, 234, 0.3)'
+                      ? '2px 2px 8px rgba(0, 0, 0, 0.1)'
                       : isActive
-                        ? '4px 3px 14px rgba(236, 72, 153, 0.6)'
-                        : '3px 3px 12px rgba(147, 51, 234, 0.5)',
+                        ? '4px 3px 14px rgba(180, 83, 9, 0.5)'
+                        : '3px 3px 12px rgba(0, 0, 0, 0.15)',
                     opacity: isBehind ? 0.6 : 1,
                   },
                 },
                 '&:focus-visible': {
-                  outline: '2px solid #7e22ce',
+                  outline: '2px solid #b45309',
                   outlineOffset: '2px',
                 },
               }}
             >
               <Typography
                 sx={{
-                  color: 'white',
+                  color: isActive ? 'white' : isBehind ? '#737373' : '#1c1917',
                   fontWeight: 600,
                   fontSize: '0.8rem',
                   textTransform: 'lowercase',
                   userSelect: 'none',
                   letterSpacing: '0.03em',
-                  textShadow: '0 1px 2px rgba(0,0,0,0.25)',
+                  textShadow: isActive ? '0 1px 2px rgba(0,0,0,0.25)' : 'none',
                   whiteSpace: 'nowrap',
                 }}
               >
@@ -177,20 +177,19 @@ export function BinderTabs() {
             transform: 'translateX(100%)',
             width: '100px',
             height: '32px',
-            background: state.resumeOpen
-              ? 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)'
-              : 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+            background: '#b45309', // amber accent, flat
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'flex-end',
             paddingRight: '10px',
             borderRadius: '0 6px 6px 0',
-            transition: 'all 0.25s ease',
+            transition: 'box-shadow 0.25s ease, width 0.25s ease, opacity 0.25s ease',
             boxShadow: state.resumeOpen
-              ? '3px 2px 10px rgba(251, 191, 36, 0.5)'
-              : '2px 2px 8px rgba(245, 158, 11, 0.35)',
+              ? '3px 2px 10px rgba(180, 83, 9, 0.45)'
+              : '2px 2px 8px rgba(180, 83, 9, 0.3)',
             pointerEvents: 'auto',
+            opacity: state.resumeOpen ? 1 : 0.9,
             zIndex: TOTAL_PAGES + 10,
             '&::before': {
               content: '""',
@@ -199,19 +198,18 @@ export function BinderTabs() {
               top: 0,
               bottom: 0,
               width: '4px',
-              background: 'linear-gradient(90deg, rgba(0,0,0,0.12) 0%, transparent 100%)',
+              background: 'linear-gradient(90deg, rgba(0,0,0,0.15) 0%, transparent 100%)',
             },
             // scope hover to pointer devices only
             '@media (hover: hover)': {
               '&:hover': {
                 width: '112px',
-                boxShadow: state.resumeOpen
-                  ? '4px 3px 14px rgba(251, 191, 36, 0.6)'
-                  : '3px 3px 12px rgba(245, 158, 11, 0.5)',
+                opacity: 1,
+                boxShadow: '4px 3px 14px rgba(180, 83, 9, 0.5)',
               },
             },
             '&:focus-visible': {
-              outline: '2px solid #d97706',
+              outline: '2px solid #b45309',
               outlineOffset: '2px',
             },
           }}

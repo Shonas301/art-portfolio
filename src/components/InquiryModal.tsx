@@ -121,7 +121,7 @@ export function InquiryModal({
               sx={{
                 fontSize: { xs: '1.5rem', md: '1.75rem' },
                 fontWeight: 700,
-                color: '#000000',
+                color: '#111827',
                 textTransform: 'lowercase',
               }}
             >

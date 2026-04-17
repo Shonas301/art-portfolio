@@ -67,9 +67,10 @@ export function LandingPage({ title, data }: LandingPageProps) {
         sx={{
           fontSize: { xs: '2.5rem', md: '3.5rem', lg: '4rem' },
           fontWeight: 700,
-          color: '#000000',
+          color: '#111827',
           mb: 2,
           lineHeight: 1.2,
+          letterSpacing: '-0.025em',
           textTransform: 'lowercase',
         }}
       >
@@ -110,8 +111,8 @@ export function LandingPage({ title, data }: LandingPageProps) {
               <Typography
                 sx={{
                   fontSize: '0.85rem',
-                  color: 'rgba(147, 51, 234, 0.55)',
-                  fontWeight: 400,
+                  color: '#44403c', // neutral-warm complement to cream shell
+                  fontWeight: 500,
                   letterSpacing: '0.02em',
                   userSelect: 'none',
                 }}

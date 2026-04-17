@@ -93,7 +93,7 @@ export function ResumeModal() {
                   sx={{
                     fontSize: { xs: '1.5rem', md: '2rem' },
                     fontWeight: 700,
-                    color: '#000000',
+                    color: '#111827',
                     textTransform: 'lowercase',
                   }}
                 >
@@ -140,7 +140,7 @@ export function ResumeModal() {
                     sx={{
                       fontSize: { xs: '1.5rem', md: '2rem' },
                       fontWeight: 700,
-                      color: '#000000',
+                      color: '#111827',
                       mb: 1,
                     }}
                   >
@@ -174,7 +174,7 @@ export function ResumeModal() {
                     sx={{
                       fontSize: { xs: '1.25rem', md: '1.5rem' },
                       fontWeight: 700,
-                      color: '#000000',
+                      color: '#111827',
                     }}
                   >
                     professional summary
@@ -202,7 +202,7 @@ export function ResumeModal() {
                     sx={{
                       fontSize: { xs: '1.25rem', md: '1.5rem' },
                       fontWeight: 700,
-                      color: '#000000',
+                      color: '#111827',
                     }}
                   >
                     experience
@@ -279,7 +279,7 @@ export function ResumeModal() {
                     sx={{
                       fontSize: { xs: '1.25rem', md: '1.5rem' },
                       fontWeight: 700,
-                      color: '#000000',
+                      color: '#111827',
                     }}
                   >
                     skills
@@ -333,7 +333,7 @@ export function ResumeModal() {
                     sx={{
                       fontSize: { xs: '1.25rem', md: '1.5rem' },
                       fontWeight: 700,
-                      color: '#000000',
+                      color: '#111827',
                     }}
                   >
                     education & certifications

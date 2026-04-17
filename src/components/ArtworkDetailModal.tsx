@@ -205,7 +205,7 @@ export function ArtworkDetailModal({
                 sx={{
                   fontSize: { xs: '1.25rem', md: '1.5rem' },
                   fontWeight: 700,
-                  color: '#000000',
+                  color: '#111827',
                   textTransform: 'lowercase',
                 }}
               >

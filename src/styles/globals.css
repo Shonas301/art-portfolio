@@ -1,5 +1,14 @@
+:root {
+  /* easing tokens — tiered per design guideline */
+  --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);    /* material standard, most ui */
+  --ease-snappy: cubic-bezier(0.4, 0, 0.6, 1);    /* quick in/out, hovers + state flips */
+  --ease-spring: cubic-bezier(0.175, 0.885, 0.32, 1.275); /* playful overshoot, delight moments */
+}
+
 body {
   margin: 0;
   min-height: 100vh;
-  background: linear-gradient(135deg, #fef9f3 0%, #fdf4f8 50%, #f3f7fe 100%);
+  background: #faf8f3;
+  font-optical-sizing: auto;
+  font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
 }

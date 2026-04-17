@@ -22,7 +22,7 @@ export function CodePage({ title, data }: CodePageProps) {
         sx={{
           fontSize: { xs: '2rem', md: '3rem' },
           fontWeight: 700,
-          color: '#000000',
+          color: '#111827',
           textTransform: 'lowercase',
         }}
       >
@@ -80,7 +80,7 @@ export function CodePage({ title, data }: CodePageProps) {
                   sx={{
                     fontSize: { xs: '1.25rem', md: '1.75rem' },
                     fontWeight: 700,
-                    color: '#000000',
+                    color: '#111827',
                     mb: 1,
                     textTransform: 'lowercase',
                   }}

@@ -19,7 +19,7 @@ export function IntroPage({ title, data }: IntroPageProps) {
         sx={{
           fontSize: { xs: '2rem', md: '3rem' },
           fontWeight: 700,
-          color: '#000000',
+          color: '#111827',
           textTransform: 'lowercase',
         }}
       >
@@ -64,7 +64,7 @@ export function IntroPage({ title, data }: IntroPageProps) {
             sx={{
               fontSize: { xs: '1.5rem', md: '2rem' },
               fontWeight: 600,
-              color: '#000000',
+              color: '#111827',
               mb: 2,
               textTransform: 'lowercase',
             }}

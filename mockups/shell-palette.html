@@ -1,0 +1,421 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>tinamation shell palette preview</title>
+<style>
+  /* reset-ish */
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; color: #1a1a1a; background: #0b0b0c; }
+  h1, h2, h3, p { margin: 0; }
+
+  .doc {
+    padding: 24px 24px 64px;
+    background: #0b0b0c;
+    color: #eaeaea;
+    min-height: 100vh;
+  }
+  .doc header { max-width: 1200px; margin: 0 auto 24px; }
+  .doc header h1 {
+    font-size: 1.1rem; font-weight: 600; letter-spacing: 0.02em; text-transform: lowercase;
+    color: #f4f4f5;
+  }
+  .doc header p {
+    font-size: 0.85rem; color: #a1a1aa; margin-top: 4px;
+  }
+  .controls {
+    max-width: 1200px;
+    margin: 16px auto 24px;
+    display: flex; gap: 8px; flex-wrap: wrap;
+    padding: 12px;
+    background: #18181b;
+    border: 1px solid #27272a;
+    border-radius: 8px;
+  }
+  .controls label {
+    font-size: 0.75rem; color: #a1a1aa; margin-right: 8px; align-self: center;
+    text-transform: lowercase;
+  }
+  .controls button {
+    font: inherit;
+    font-size: 0.78rem;
+    padding: 6px 10px;
+    background: #27272a;
+    color: #e4e4e7;
+    border: 1px solid #3f3f46;
+    border-radius: 4px;
+    cursor: pointer;
+    text-transform: lowercase;
+  }
+  .controls button.active {
+    background: #fafafa;
+    color: #111;
+    border-color: #fafafa;
+  }
+  .controls .sep { width: 1px; background: #3f3f46; margin: 0 6px; }
+
+  .grid {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+  @media (max-width: 900px) {
+    .grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 620px) {
+    .grid { grid-template-columns: 1fr; }
+  }
+
+  .tile {
+    background: #18181b;
+    border: 1px solid #27272a;
+    border-radius: 10px;
+    overflow: hidden;
+    display: flex; flex-direction: column;
+  }
+  .tile .caption {
+    padding: 10px 12px;
+    border-top: 1px solid #27272a;
+    color: #d4d4d8;
+    font-size: 0.75rem;
+    line-height: 1.5;
+    display: flex; justify-content: space-between; gap: 10px;
+    flex-wrap: wrap;
+  }
+  .tile .caption b { color: #fafafa; font-weight: 600; }
+  .tile .caption .hexes { color: #a1a1aa; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.72rem; }
+  .tile .caption .accent-dot {
+    display: inline-block; width: 10px; height: 10px; border-radius: 50%;
+    vertical-align: middle; margin-right: 4px;
+    border: 1px solid rgba(0,0,0,0.15);
+  }
+  .tile .caption .cap-col { max-width: 50%; }
+  .tile .caption .right { text-align: right; }
+
+  .stage {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 10;
+    overflow: hidden;
+    isolation: isolate;
+  }
+  .stage .body-bg { position: absolute; inset: 0; z-index: 0; }
+  .stage .artist {
+    position: absolute;
+    top: 10px; left: 14px;
+    z-index: 15;
+    font-size: 0.82rem;
+    font-weight: 700;
+    text-transform: lowercase;
+    letter-spacing: 0.01em;
+    user-select: none;
+  }
+  .stage .book-wrap {
+    position: absolute;
+    inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    z-index: 5;
+    padding: 22px 90px 22px 22px;
+  }
+  .stage .book {
+    position: relative;
+    width: 78%;
+    height: 80%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    border-radius: 3px;
+    box-shadow:
+      0 10px 24px rgba(0,0,0,0.14),
+      0 2px 6px rgba(0,0,0,0.08);
+  }
+  .stage .book .page {
+    position: relative;
+    overflow: hidden;
+    background-color: #fcfbf7;
+    background-image:
+      radial-gradient(rgba(0,0,0,0.018) 1px, transparent 1px),
+      linear-gradient(180deg, rgba(0,0,0,0.03), transparent 25%),
+      linear-gradient(0deg, rgba(0,0,0,0.02), transparent 30%);
+    background-size: 3px 3px, auto, auto;
+  }
+  .stage .book .page.left {
+    border-right: 1px solid rgba(0,0,0,0.08);
+    box-shadow: inset -8px 0 12px -8px rgba(0,0,0,0.12);
+  }
+  .stage .book .page.right {
+    box-shadow: inset 8px 0 12px -8px rgba(0,0,0,0.08);
+  }
+  .stage .book .hero {
+    position: absolute;
+    inset: 0;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center;
+    color: #0a0a0a;
+    padding: 10px;
+  }
+  .stage .book .hero h2 {
+    font-size: 1.3rem; font-weight: 700; text-transform: lowercase; line-height: 1.15;
+  }
+  .stage .book .hero p {
+    margin-top: 4px; font-size: 0.78rem; font-weight: 500; color: #262626; text-transform: lowercase;
+  }
+  .stage .book .hero .hint {
+    margin-top: 10px; font-size: 0.62rem; text-transform: lowercase; letter-spacing: 0.02em;
+  }
+
+  .stage .tabs {
+    position: absolute;
+    top: 0; bottom: 0; right: 0;
+    width: 0;
+    z-index: 20;
+    pointer-events: none;
+  }
+  .stage .tab {
+    position: absolute;
+    right: 0;
+    height: 16px;
+    width: 70px;
+    transform: translateX(calc(100% - 6px)) translateY(-50%);
+    border-radius: 0 4px 4px 0;
+    display: flex; align-items: center; justify-content: flex-end;
+    padding: 0 6px;
+    color: #fff;
+    font-size: 0.56rem;
+    text-transform: lowercase;
+    letter-spacing: 0.02em;
+    font-weight: 600;
+    text-shadow: 0 1px 1px rgba(0,0,0,0.25);
+    box-shadow: 1px 1px 4px rgba(0,0,0,0.15);
+    pointer-events: auto;
+  }
+  .stage .tab::before {
+    content: "";
+    position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+    background: linear-gradient(90deg, rgba(0,0,0,0.15), transparent);
+  }
+
+  .stage.invert .book .page {
+    background-color: #0f0d0c;
+    background-image:
+      radial-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+      linear-gradient(180deg, rgba(255,255,255,0.02), transparent 25%);
+  }
+  .stage.invert .book .page.left { border-right-color: rgba(255,255,255,0.08); }
+  .stage.invert .book .hero h2 { color: #fafaf9; }
+  .stage.invert .book .hero p { color: #d4d4d8; }
+
+  .legend {
+    max-width: 1200px;
+    margin: 14px auto 0;
+    padding: 10px 14px;
+    background: #111113;
+    border: 1px solid #27272a;
+    border-radius: 8px;
+    color: #a1a1aa;
+    font-size: 0.75rem;
+    line-height: 1.55;
+  }
+  .legend b { color: #e4e4e7; }
+  .legend code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    background: #1e1e22;
+    padding: 1px 5px;
+    border-radius: 3px;
+    color: #e4e4e7;
+    font-size: 0.72rem;
+  }
+
+  .tile.dimmed { opacity: 0.25; filter: grayscale(0.1); }
+</style>
+</head>
+<body>
+<div class="doc">
+  <header>
+    <h1>tinamation — shell palette preview</h1>
+    <p>4 body palettes × 3 accent options = 12 variants. mock book + binder tabs in realistic proportions. system fonts only; this is a palette study, not typography.</p>
+  </header>
+
+  <div class="legend">
+    <b>what is shown:</b> each tile replicates the v2 shell — body background (replacing the current animated pastel gradient), artist-name top-left, open book centered with faux paper, and binder tabs on the right. the middle tab ("2d work") is shown <b>active</b> (uses accent), surrounding tabs use the desaturated neutral chrome, tabs above represent flipped pages (ghosted).<br/>
+    <b>goal:</b> near-monochrome chrome, artwork provides all color. retire <code>#fdf2f8 → #fae8ff → #ddd6fe → #bfdbfe → #e0e7ff</code> animated gradient + saturated pink/purple/amber tabs.
+  </div>
+
+  <div class="controls" id="controls">
+    <label>body:</label>
+    <button data-body="all" class="active">all</button>
+    <button data-body="warm-cream">warm cream</button>
+    <button data-body="off-white">off-white paper</button>
+    <button data-body="near-white">near-white</button>
+    <button data-body="charcoal">charcoal inverse</button>
+    <span class="sep"></span>
+    <label>accent:</label>
+    <button data-accent="all" class="active">all</button>
+    <button data-accent="purple">purple #9333ea</button>
+    <button data-accent="amber">amber #b45309</button>
+    <button data-accent="teal">teal #0f766e</button>
+  </div>
+
+  <div class="grid" id="grid"></div>
+</div>
+
+<script>
+  const bodies = [
+    { key: 'warm-cream', name: 'warm cream', bodyHex: '#faf8f3', chromeHex: '#e8e5df', chromeActiveHex: '#d6d2c8', textHex: '#1c1917', artistHex: '#1c1917', invert: false },
+    { key: 'off-white', name: 'off-white paper', bodyHex: '#fafaf9', chromeHex: '#d6d3cd', chromeActiveHex: '#bfbcb4', textHex: '#1c1917', artistHex: '#1c1917', invert: false },
+    { key: 'near-white', name: 'near-white minimal', bodyHex: '#fbfbfb', chromeHex: '#e5e5e5', chromeActiveHex: '#c9c9c9', textHex: '#111111', artistHex: '#111111', invert: false },
+    { key: 'charcoal', name: 'soft charcoal (inverse)', bodyHex: '#1c1917', chromeHex: '#292524', chromeActiveHex: '#3a3532', textHex: '#fafafa', artistHex: '#fafafa', invert: true },
+  ];
+
+  const accents = [
+    { key: 'purple', name: 'purple', hex: '#9333ea' },
+    { key: 'amber',  name: 'amber',  hex: '#b45309' },
+    { key: 'teal',   name: 'teal',   hex: '#0f766e' },
+  ];
+
+  const sections = ['home', 'intro', '3d work', '2d work', 'code', 'pandy', 'contact'];
+
+  const grid = document.getElementById('grid');
+
+  function el(tag, cls) {
+    const e = document.createElement(tag);
+    if (cls) e.className = cls;
+    return e;
+  }
+
+  function makeTab({label, top, bg, color, ghosted, active}) {
+    const t = el('div', 'tab');
+    t.style.top = top + '%';
+    t.style.background = bg;
+    t.style.color = color || '#fff';
+    if (ghosted) t.style.opacity = '0.35';
+    if (active) {
+      t.style.boxShadow = '2px 2px 8px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.18)';
+      t.style.height = '18px';
+    }
+    t.textContent = label;
+    return t;
+  }
+
+  bodies.forEach(b => {
+    accents.forEach(a => {
+      const tile = el('div', 'tile');
+      tile.dataset.body = b.key;
+      tile.dataset.accent = a.key;
+
+      const stage = el('div', 'stage' + (b.invert ? ' invert' : ''));
+
+      const bg = el('div', 'body-bg');
+      bg.style.background = b.bodyHex;
+      stage.appendChild(bg);
+
+      const artist = el('div', 'artist');
+      artist.style.color = b.artistHex;
+      artist.textContent = 'christina shi';
+      stage.appendChild(artist);
+
+      const bookWrap = el('div', 'book-wrap');
+      const book = el('div', 'book');
+      const leftP = el('div', 'page left');
+      const rightP = el('div', 'page right');
+
+      const hero = el('div', 'hero');
+      const h2 = el('h2'); h2.textContent = 'christina shi';
+      const p = el('p'); p.textContent = '3d artist · portfolio';
+      const hint = el('div', 'hint');
+      hint.textContent = 'use arrow keys or swipe to explore →';
+      hint.style.color = a.hex;
+      hero.appendChild(h2);
+      hero.appendChild(p);
+      hero.appendChild(hint);
+
+      rightP.appendChild(hero);
+      book.appendChild(leftP);
+      book.appendChild(rightP);
+      bookWrap.appendChild(book);
+      stage.appendChild(bookWrap);
+
+      const tabs = el('div', 'tabs');
+      const total = sections.length;
+      const activeIdx = 3;
+      sections.forEach((label, i) => {
+        const vertical = 12 + (i * (76 / (total - 1)));
+        const isActive = i === activeIdx;
+        const isBehind = i < activeIdx;
+
+        let tabBg;
+        if (isActive) tabBg = a.hex;
+        else if (isBehind) tabBg = b.chromeActiveHex;
+        else tabBg = b.chromeHex;
+
+        let color = b.invert ? '#fafafa' : '#1c1917';
+        if (isActive) color = '#ffffff';
+
+        const t = makeTab({ label, top: vertical, bg: tabBg, color, ghosted: isBehind, active: isActive });
+        tabs.appendChild(t);
+      });
+
+      const resume = makeTab({ label: 'resume', top: 94, bg: a.hex, color: '#ffffff', ghosted: false, active: false });
+      resume.style.opacity = '0.85';
+      tabs.appendChild(resume);
+
+      stage.appendChild(tabs);
+      tile.appendChild(stage);
+
+      // caption via safe DOM ops
+      const cap = el('div', 'caption');
+      const colL = el('div', 'cap-col');
+      const bn = el('b'); bn.textContent = b.name;
+      const br1 = el('br');
+      const hx1 = el('span', 'hexes');
+      hx1.textContent = 'body ' + b.bodyHex + ' · chrome ' + b.chromeHex;
+      colL.appendChild(bn);
+      colL.appendChild(br1);
+      colL.appendChild(hx1);
+
+      const colR = el('div', 'cap-col right');
+      const dot = el('span', 'accent-dot');
+      dot.style.background = a.hex;
+      const an = el('b'); an.textContent = a.name;
+      const br2 = el('br');
+      const hx2 = el('span', 'hexes');
+      hx2.textContent = a.hex;
+      colR.appendChild(dot);
+      colR.appendChild(an);
+      colR.appendChild(br2);
+      colR.appendChild(hx2);
+
+      cap.appendChild(colL);
+      cap.appendChild(colR);
+      tile.appendChild(cap);
+
+      grid.appendChild(tile);
+    });
+  });
+
+  const controls = document.getElementById('controls');
+  let bodyFilter = 'all';
+  let accentFilter = 'all';
+
+  controls.addEventListener('click', (e) => {
+    const btn = e.target.closest('button');
+    if (!btn) return;
+    if (btn.dataset.body !== undefined) {
+      bodyFilter = btn.dataset.body;
+      controls.querySelectorAll('[data-body]').forEach(b => b.classList.toggle('active', b === btn));
+    }
+    if (btn.dataset.accent !== undefined) {
+      accentFilter = btn.dataset.accent;
+      controls.querySelectorAll('[data-accent]').forEach(b => b.classList.toggle('active', b === btn));
+    }
+    document.querySelectorAll('.tile').forEach(tile => {
+      const okBody = bodyFilter === 'all' || tile.dataset.body === bodyFilter;
+      const okAccent = accentFilter === 'all' || tile.dataset.accent === accentFilter;
+      tile.classList.toggle('dimmed', !(okBody && okAccent));
+    });
+  });
+</script>
+</body>
+</html>

@@ -74,7 +74,7 @@ export const theme = extendTheme({
   },
   fontFamily: {
     body: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-    display: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+    display: 'var(--font-display), Cormorant, "Times New Roman", serif',
   },
   fontSize: {
     xs: '0.75rem',
