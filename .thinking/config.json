@@ -1,0 +1,12 @@
+{
+  "repo_type": "bare",
+  "main_worktree": "main",
+  "worktree_root": "/Users/jasonshipp/code/friends/tinamation.git",
+  "content_type": "code",
+  "content_type_auto": true,
+  "content_root": "/",
+  "scm": {
+    "git": true,
+    "p4": false
+  }
+}
