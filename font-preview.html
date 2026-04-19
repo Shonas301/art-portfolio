@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>font preview — 12 options</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300..900&family=Instrument+Serif&family=Inter:opsz,wght@14..32,100..900&family=Newsreader:opsz,wght@6..72,200..800&family=Cormorant:wght@300;400;500&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=DM+Serif+Display:ital@0;1&family=Caveat:wght@400..700&family=Space+Grotesk:wght@300..700&family=Archivo:wdth,wght@62..125,100..900&family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,200..800&family=Manrope:wght@200..800&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: #faf8f3;
+      color: #111827;
+      font-family: -apple-system, system-ui, sans-serif;
+      font-optical-sizing: auto;
+      font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
+      padding: 40px 24px 80px;
+      display: flex;
+      justify-content: center;
+    }
+    .container { max-width: 1040px; width: 100%; }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 24px;
+    }
+    .title { font-size: 13px; color: #525252; font-family: ui-monospace, monospace; }
+    .group-label {
+      font-size: 11px;
+      color: #a3a3a3;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin: 16px 0 6px;
+      font-family: ui-monospace, monospace;
+    }
+    .group-label:first-of-type { margin-top: 0; }
+    .tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      border-bottom: 1px solid #e5e5e5;
+      padding-bottom: 12px;
+    }
+    .tab {
+      padding: 8px 14px;
+      background: none;
+      border: 1px solid #e5e5e5;
+      border-radius: 6px;
+      font-size: 13px;
+      color: #525252;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      font-family: inherit;
+    }
+    .tab:hover { color: #111827; border-color: #a3a3a3; }
+    .tab.active {
+      color: #faf8f3;
+      background: #111827;
+      border-color: #111827;
+    }
+    .panels { margin-top: 56px; min-height: 260px; }
+    .panel { display: none; }
+    .panel.active { display: block; }
+    .sample {
+      font-size: clamp(40px, 7vw, 88px);
+      line-height: 1.05;
+      margin: 0;
+    }
+    .meta {
+      margin-top: 28px;
+      font-size: 13px;
+      color: #737373;
+      font-family: ui-monospace, monospace;
+    }
+
+    /* round 1 — originals */
+    .fraunces        { font-family: 'Fraunces', serif;               font-variation-settings: 'opsz' 96; font-weight: 600; letter-spacing: -0.025em; }
+    .instrument      { font-family: 'Instrument Serif', serif;        font-weight: 400;                   letter-spacing: -0.025em; }
+    .inter           { font-family: 'Inter', sans-serif;              font-variation-settings: 'opsz' 32; font-weight: 700; letter-spacing: -0.025em; }
+    .newsreader      { font-family: 'Newsreader', serif;              font-variation-settings: 'opsz' 72; font-weight: 600; letter-spacing: -0.025em; }
+
+    /* round 2 — lighter/sharper */
+    .cormorant       { font-family: 'Cormorant', serif;               font-weight: 300; letter-spacing: -0.01em; }
+    .playfair        { font-family: 'Playfair Display', serif;        font-weight: 500; }
+    .dmserif         { font-family: 'DM Serif Display', serif;        font-weight: 400; }
+    .caveat          { font-family: 'Caveat', cursive;                font-weight: 500; letter-spacing: 0; }
+
+    /* round 3 — sans, narrower */
+    .spacegrotesk    { font-family: 'Space Grotesk', sans-serif;      font-weight: 500; letter-spacing: -0.025em; }
+    .archivo         { font-family: 'Archivo', sans-serif;            font-weight: 600; font-variation-settings: 'wdth' 85; letter-spacing: -0.02em; }
+    .bricolage       { font-family: 'Bricolage Grotesque', sans-serif; font-weight: 500; font-variation-settings: 'opsz' 96, 'wdth' 88; letter-spacing: -0.02em; }
+    .manrope         { font-family: 'Manrope', sans-serif;            font-weight: 600; letter-spacing: -0.03em; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="title">tinamation · display-font preview · 12 options</div>
+      <div class="title" id="current-name">—</div>
+    </div>
+
+    <div class="group-label">round 1 · originals</div>
+    <div class="tabs">
+      <button class="tab active" data-panel="p1"  data-name="Fraunces">Fraunces</button>
+      <button class="tab"        data-panel="p2"  data-name="Instrument Serif">Instrument Serif</button>
+      <button class="tab"        data-panel="p3"  data-name="Inter">Inter</button>
+      <button class="tab"        data-panel="p4"  data-name="Newsreader">Newsreader</button>
+    </div>
+
+    <div class="group-label">round 2 · lighter / sharper</div>
+    <div class="tabs">
+      <button class="tab" data-panel="p5" data-name="Cormorant">Cormorant</button>
+      <button class="tab" data-panel="p6" data-name="Playfair Display">Playfair Display</button>
+      <button class="tab" data-panel="p7" data-name="DM Serif Display">DM Serif Display</button>
+      <button class="tab" data-panel="p8" data-name="Caveat">Caveat</button>
+    </div>
+
+    <div class="group-label">round 3 · sans, narrower</div>
+    <div class="tabs">
+      <button class="tab" data-panel="p9"  data-name="Space Grotesk">Space Grotesk</button>
+      <button class="tab" data-panel="p10" data-name="Archivo (narrow)">Archivo (narrow)</button>
+      <button class="tab" data-panel="p11" data-name="Bricolage Grotesque">Bricolage Grotesque</button>
+      <button class="tab" data-panel="p12" data-name="Manrope">Manrope</button>
+    </div>
+
+    <div class="panels">
+      <div id="p1"  class="panel active"><p class="sample fraunces">Sphinx of black quarts, judge my vow, Christina Shi</p>    <p class="meta">Fraunces &middot; opsz 96 &middot; weight 600 &middot; warm rounded serif</p></div>
+      <div id="p2"  class="panel"><p class="sample instrument">Sphinx of black quarts, judge my vow, Christina Shi</p>          <p class="meta">Instrument Serif &middot; regular &middot; editorial contrast serif</p></div>
+      <div id="p3"  class="panel"><p class="sample inter">Sphinx of black quarts, judge my vow, Christina Shi</p>                <p class="meta">Inter &middot; opsz 32 &middot; weight 700 &middot; modern geometric sans</p></div>
+      <div id="p4"  class="panel"><p class="sample newsreader">Sphinx of black quarts, judge my vow, Christina Shi</p>          <p class="meta">Newsreader &middot; opsz 72 &middot; weight 600 &middot; soft bookish serif</p></div>
+
+      <div id="p5"  class="panel"><p class="sample cormorant">Sphinx of black quarts, judge my vow, Christina Shi</p>          <p class="meta">Cormorant &middot; light 300 &middot; thin elegant editorial serif</p></div>
+      <div id="p6"  class="panel"><p class="sample playfair">Sphinx of black quarts, judge my vow, Christina Shi</p>            <p class="meta">Playfair Display &middot; weight 500 &middot; classical didone contrast</p></div>
+      <div id="p7"  class="panel"><p class="sample dmserif">Sphinx of black quarts, judge my vow, Christina Shi</p>              <p class="meta">DM Serif Display &middot; weight 400 &middot; sharp terminals, modern-classical</p></div>
+      <div id="p8"  class="panel"><p class="sample caveat">Sphinx of black quarts, judge my vow, Christina Shi</p>              <p class="meta">Caveat &middot; weight 500 &middot; handwritten casual script</p></div>
+
+      <div id="p9"  class="panel"><p class="sample spacegrotesk">Sphinx of black quarts, judge my vow, Christina Shi</p>        <p class="meta">Space Grotesk &middot; weight 500 &middot; modernist geometric sans</p></div>
+      <div id="p10" class="panel"><p class="sample archivo">Sphinx of black quarts, judge my vow, Christina Shi</p>              <p class="meta">Archivo &middot; weight 600 &middot; width 85 &middot; editorial condensed sans</p></div>
+      <div id="p11" class="panel"><p class="sample bricolage">Sphinx of black quarts, judge my vow, Christina Shi</p>            <p class="meta">Bricolage Grotesque &middot; weight 500 &middot; width 88 &middot; humanist editorial sans</p></div>
+      <div id="p12" class="panel"><p class="sample manrope">Sphinx of black quarts, judge my vow, Christina Shi</p>              <p class="meta">Manrope &middot; weight 600 &middot; clean restrained geometric sans</p></div>
+    </div>
+  </div>
+
+  <script>
+    const tabs = document.querySelectorAll('.tab');
+    const panels = document.querySelectorAll('.panel');
+    const currentName = document.getElementById('current-name');
+    currentName.textContent = document.querySelector('.tab.active').dataset.name;
+
+    tabs.forEach(t => t.addEventListener('click', () => {
+      tabs.forEach(x => x.classList.remove('active'));
+      panels.forEach(x => x.classList.remove('active'));
+      t.classList.add('active');
+      document.getElementById(t.dataset.panel).classList.add('active');
+      currentName.textContent = t.dataset.name;
+    }));
+
+    // arrow-key navigation through all 12
+    document.addEventListener('keydown', (e) => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const active = document.querySelector('.tab.active');
+      const idx = [...tabs].indexOf(active);
+      const next = e.key === 'ArrowRight'
+        ? (idx + 1) % tabs.length
+        : (idx - 1 + tabs.length) % tabs.length;
+      tabs[next].click();
+    });
+  </script>
+</body>
+</html>

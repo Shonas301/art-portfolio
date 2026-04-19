@@ -34,3 +34,5 @@ progress.md
 public
 cc-next-react
 *.tsbuildinfo
+wix-assets/
+scripts/
